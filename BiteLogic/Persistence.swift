@@ -9,7 +9,7 @@ struct PersistenceController {
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "BearCutFishing")
+        container = NSPersistentContainer(name: "BiteLogic")
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         }
@@ -18,12 +18,13 @@ struct PersistenceController {
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
 
-        container.loadPersistentStores { description, error in
+        let localContainer = container
+        localContainer.loadPersistentStores { description, error in
             if let error = error as NSError? {
                 // If migration fails, destroy and recreate the store
                 if let url = description.url {
                     try? FileManager.default.removeItem(at: url)
-                    container.loadPersistentStores { _, retryError in
+                    localContainer.loadPersistentStores { _, retryError in
                         if let retryError = retryError as NSError? {
                             fatalError("Core Data error after reset: \(retryError), \(retryError.userInfo)")
                         }
