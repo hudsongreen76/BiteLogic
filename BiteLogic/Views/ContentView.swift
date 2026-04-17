@@ -15,6 +15,12 @@ struct ContentView: View {
                 mainTabView
             }
         }
+        // Sheet lives on the Group (ContentView level), not inside onboardingView.
+        // This prevents it from being destroyed when spots becomes non-empty
+        // and the view switches from onboarding → main.
+        .sheet(isPresented: $showingAddSpot) {
+            SpotPickerView(spotManager: spotManager)
+        }
         .onAppear {
             spotManager.loadSpots(context: viewContext)
         }
@@ -51,9 +57,6 @@ struct ContentView: View {
             .buttonStyle(.bordered)
         }
         .padding()
-        .sheet(isPresented: $showingAddSpot) {
-            SpotPickerView(spotManager: spotManager)
-        }
     }
 
     // MARK: - Main Tab View
@@ -65,11 +68,6 @@ struct ContentView: View {
                     Label("Dashboard", systemImage: "water.waves")
                 }
 
-            ForecastView()
-                .tabItem {
-                    Label("Forecast", systemImage: "chart.bar.fill")
-                }
-
             LogListView()
                 .tabItem {
                     Label("Log", systemImage: "book.fill")
@@ -78,6 +76,11 @@ struct ContentView: View {
             InsightsView()
                 .tabItem {
                     Label("Insights", systemImage: "chart.line.uptrend.xyaxis")
+                }
+
+            SpotComparisonView(spotManager: spotManager)
+                .tabItem {
+                    Label("Compare", systemImage: "mappin.and.ellipse")
                 }
         }
         .environmentObject(vm)

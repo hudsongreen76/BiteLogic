@@ -82,10 +82,15 @@ enum VariableType: String, Codable, CaseIterable {
 struct WeatherData {
     let windMph: Double
     let windDirection: String
+    let windGustsMph: Double
     let waterTempF: Double
     let airTempF: Double
     let pressureHpa: Double
     let pressureChangeRate: Double
+    let precipitationMm: Double
+    let waveHeightM: Double
+    let wavePeriodS: Double
+    let cloudCoverPct: Double
     let timestamp: Date
     var waterTempEstimated: Bool = false
 }
@@ -104,6 +109,11 @@ struct EnvironmentalConditions {
     var airTempF: Double = 0
     var pressureHpa: Double = 0
     var pressureChangeRate: Double = 0    // hPa/hr
+    var precipitationMm: Double = 0       // mm in the period
+    var waveHeightM: Double = 0           // significant wave height, meters
+    var wavePeriodS: Double = 0           // dominant wave period, seconds
+    var cloudCoverPct: Double = 0         // 0-100%
+    var windGustsMph: Double = 0          // gust speed, mph
     var timeOfDay: Double = 0             // fractional hours 0-24
     var isDaylight: Bool = true
 
@@ -161,12 +171,18 @@ struct OpenMeteoResponse: Codable {
         let windDirection10m: [Double]
         let temperature2m: [Double]
         let surfacePressure: [Double]?
+        let precipitation: [Double]?
+        let cloudCover: [Double]?
+        let windGusts10m: [Double]?
         enum CodingKeys: String, CodingKey {
             case time
             case windSpeed10m = "wind_speed_10m"
             case windDirection10m = "wind_direction_10m"
             case temperature2m = "temperature_2m"
             case surfacePressure = "surface_pressure"
+            case precipitation
+            case cloudCover = "cloud_cover"
+            case windGusts10m = "wind_gusts_10m"
         }
     }
 }
@@ -176,9 +192,13 @@ struct MarineWeatherResponse: Codable {
     struct MarineHourly: Codable {
         let time: [String]
         let seaSurfaceTemperature: [Double?]
+        let waveHeight: [Double?]?
+        let wavePeriod: [Double?]?
         enum CodingKeys: String, CodingKey {
             case time
             case seaSurfaceTemperature = "sea_surface_temperature"
+            case waveHeight = "wave_height"
+            case wavePeriod = "wave_period"
         }
     }
 }
@@ -229,6 +249,135 @@ struct MoonPhaseData {
     }
 }
 
+// MARK: - Species Profile
+//
+// Predefined species templates that drive temperature scoring and show
+// seasonal activity multipliers. Users assign one to each tracked variable.
+
+enum SpeciesProfile: String, Codable, CaseIterable {
+    case generic       = "generic"
+    case snook         = "snook"
+    case tarpon        = "tarpon"
+    case permit        = "permit"
+    case redfish       = "redfish"
+    case flounder      = "flounder"
+    case speckledTrout = "speckled_trout"
+    case bass          = "bass"
+    case bluegill      = "bluegill"
+    case walleye       = "walleye"
+
+    var displayName: String {
+        switch self {
+        case .generic:       return "Generic"
+        case .snook:         return "Snook"
+        case .tarpon:        return "Tarpon"
+        case .permit:        return "Permit"
+        case .redfish:       return "Redfish"
+        case .flounder:      return "Flounder"
+        case .speckledTrout: return "Speckled Trout"
+        case .bass:          return "Bass"
+        case .bluegill:      return "Bluegill"
+        case .walleye:       return "Walleye"
+        }
+    }
+
+    var icon: String { "fish.fill" }
+
+    // Comfortable temperature range (°F)
+    var optimalTempMin: Double {
+        switch self {
+        case .generic:       return 62
+        case .snook:         return 68
+        case .tarpon:        return 74
+        case .permit:        return 70
+        case .redfish:       return 58
+        case .flounder:      return 52
+        case .speckledTrout: return 55
+        case .bass:          return 58
+        case .bluegill:      return 62
+        case .walleye:       return 48
+        }
+    }
+
+    var optimalTempMax: Double {
+        switch self {
+        case .generic:       return 84
+        case .snook:         return 86
+        case .tarpon:        return 90
+        case .permit:        return 85
+        case .redfish:       return 84
+        case .flounder:      return 72
+        case .speckledTrout: return 78
+        case .bass:          return 80
+        case .bluegill:      return 80
+        case .walleye:       return 68
+        }
+    }
+
+    /// Temperature score (0–1) for a given water temp using this species' preferred range.
+    func tempScore(waterTempF: Double) -> Double {
+        let mid  = (optimalTempMin + optimalTempMax) / 2.0
+        let half = (optimalTempMax - optimalTempMin) / 2.0
+        let dist = abs(waterTempF - mid)
+
+        if dist <= half * 0.30 { return 0.95 }
+        if dist <= half * 0.65 { return 0.80 }
+        if dist <= half        { return 0.60 }
+        // Outside optimal range — penalise progressively
+        if waterTempF < optimalTempMin {
+            return max(0.10, 0.60 - (optimalTempMin - waterTempF) * 0.035)
+        } else {
+            return max(0.10, 0.60 - (waterTempF - optimalTempMax) * 0.045)
+        }
+    }
+
+    /// Seasonal activity multiplier (0–1) by month index (0 = January).
+    var seasonalScores: [Double] {
+        switch self {
+        case .generic:
+            return [0.60, 0.60, 0.70, 0.80, 0.90, 1.00, 1.00, 0.90, 0.90, 0.80, 0.70, 0.60]
+        case .snook:
+            return [0.30, 0.30, 0.50, 0.80, 1.00, 1.00, 0.90, 0.90, 1.00, 0.80, 0.50, 0.30]
+        case .tarpon:
+            return [0.20, 0.30, 0.50, 0.70, 0.90, 1.00, 1.00, 0.90, 0.80, 0.60, 0.30, 0.20]
+        case .permit:
+            return [0.40, 0.50, 0.70, 0.90, 1.00, 1.00, 0.80, 0.80, 0.90, 0.80, 0.60, 0.40]
+        case .redfish:
+            return [0.70, 0.70, 0.70, 0.80, 0.80, 0.70, 0.70, 0.80, 0.90, 1.00, 0.90, 0.80]
+        case .flounder:
+            return [0.60, 0.50, 0.70, 0.90, 0.80, 0.60, 0.60, 0.70, 0.90, 1.00, 0.80, 0.60]
+        case .speckledTrout:
+            return [0.70, 0.60, 0.80, 1.00, 0.90, 0.70, 0.70, 0.80, 0.90, 1.00, 0.90, 0.70]
+        case .bass:
+            return [0.60, 0.60, 0.90, 1.00, 0.90, 0.70, 0.60, 0.70, 0.80, 0.90, 0.70, 0.50]
+        case .bluegill:
+            return [0.40, 0.50, 0.70, 0.90, 1.00, 1.00, 0.90, 0.80, 0.70, 0.60, 0.40, 0.40]
+        case .walleye:
+            return [0.60, 0.70, 0.90, 1.00, 0.80, 0.60, 0.50, 0.60, 0.80, 1.00, 0.90, 0.70]
+        }
+    }
+
+    /// Returns this month's seasonal score.
+    func currentSeasonalScore() -> Double {
+        let month = Calendar.current.component(.month, from: Date()) - 1
+        return seasonalScores[month]
+    }
+
+    /// Human-readable description of temp preferences.
+    var tempRangeDescription: String {
+        "\(Int(optimalTempMin))–\(Int(optimalTempMax))°F"
+    }
+
+    /// Name of the current month's activity level.
+    func currentSeasonLabel() -> String {
+        let score = currentSeasonalScore()
+        if score >= 0.90 { return "Peak season" }
+        if score >= 0.70 { return "Active season" }
+        if score >= 0.50 { return "Moderate season" }
+        return "Off season"
+    }
+}
+
 // MARK: - Prediction Mode
 
 enum PredictionMode: String, Codable, CaseIterable {
@@ -260,26 +409,107 @@ enum PredictionMode: String, Codable, CaseIterable {
 // MARK: - Heuristic User Preferences (for optional factors)
 
 struct HeuristicPreferences: Codable {
+    // Tide movement: false = no effect (landlocked), true = more movement is better
+    var tideMovementEnabled: Bool = true
     // Time of day: nil = no effect, "night" = night better, "day" = day better
     var timePreference: String? = nil
     // Moon phase: nil = no effect, "new" = new moon better, "full" = full moon better
     var moonPreference: String? = nil
     // Tide stage: nil = no effect, "incoming" = incoming better, "outgoing" = outgoing better
     var tideStagePreference: String? = nil
+    // Rain: nil = no effect, "norain" = no rain better, "rain" = rain better
+    var rainPreference: String? = nil
+    // Wave height: nil = no effect, "calmer" = calm better, "rougher" = rough better
+    var wavePreference: String? = nil
+    // Cloud cover: nil = no effect, "overcast" = overcast better, "sunny" = sunny better
+    var cloudCoverPreference: String? = nil
+    // Species profile: drives temperature scoring and shows seasonal context
+    var speciesProfile: SpeciesProfile = .generic
 
     static let defaultPreferences = HeuristicPreferences()
 
-    static func load() -> HeuristicPreferences {
-        guard let data = UserDefaults.standard.data(forKey: "heuristicPreferences"),
+    static func load(spotId: UUID? = nil) -> HeuristicPreferences {
+        let key = prefsKey(for: spotId)
+        guard let data = UserDefaults.standard.data(forKey: key),
               let prefs = try? JSONDecoder().decode(HeuristicPreferences.self, from: data) else {
             return .defaultPreferences
         }
         return prefs
     }
 
-    func save() {
+    func save(spotId: UUID? = nil) {
+        let key = Self.prefsKey(for: spotId)
         if let data = try? JSONEncoder().encode(self) {
-            UserDefaults.standard.set(data, forKey: "heuristicPreferences")
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    static func weightsKey(for spotId: UUID?) -> String {
+        guard let spotId else { return "heuristicWeights" }
+        return "heuristicWeights_\(spotId.uuidString)"
+    }
+
+    static func loadWeights(spotId: UUID? = nil) -> [Double] {
+        let key = weightsKey(for: spotId)
+        if let data = UserDefaults.standard.data(forKey: key),
+           let saved = try? JSONDecoder().decode([Double].self, from: data),
+           saved.count == HeuristicEngine.factorNames.count {
+            return saved
+        }
+        return HeuristicEngine().weights
+    }
+
+    static func saveWeights(_ weights: [Double], spotId: UUID? = nil) {
+        let key = weightsKey(for: spotId)
+        if let data = try? JSONEncoder().encode(weights) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    private static func prefsKey(for spotId: UUID?) -> String {
+        guard let spotId else { return "heuristicPreferences" }
+        return "heuristicPreferences_\(spotId.uuidString)"
+    }
+
+    // MARK: - Per-Variable Weights
+
+    static func variableWeightsKey(for variableId: UUID) -> String {
+        "heuristicWeights_var_\(variableId.uuidString)"
+    }
+
+    /// Returns nil if no variable-specific weights have been saved.
+    static func loadVariableWeights(variableId: UUID) -> [Double]? {
+        let key = variableWeightsKey(for: variableId)
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let saved = try? JSONDecoder().decode([Double].self, from: data),
+              saved.count == HeuristicEngine.factorNames.count else { return nil }
+        return saved
+    }
+
+    static func saveVariableWeights(_ weights: [Double], variableId: UUID) {
+        let key = variableWeightsKey(for: variableId)
+        if let data = try? JSONEncoder().encode(weights) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    // MARK: - Per-Variable Preferences
+
+    static func variablePrefsKey(for variableId: UUID) -> String {
+        "heuristicPrefs_var_\(variableId.uuidString)"
+    }
+
+    static func loadVariablePreferences(variableId: UUID) -> HeuristicPreferences? {
+        let key = variablePrefsKey(for: variableId)
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let prefs = try? JSONDecoder().decode(HeuristicPreferences.self, from: data) else { return nil }
+        return prefs
+    }
+
+    static func saveVariablePreferences(_ prefs: HeuristicPreferences, variableId: UUID) {
+        let key = variablePrefsKey(for: variableId)
+        if let data = try? JSONEncoder().encode(prefs) {
+            UserDefaults.standard.set(data, forKey: key)
         }
     }
 }
@@ -293,12 +523,12 @@ struct PredictionFactor {
     let contribution: Double  // score * weight
     let note: String
     let color: Color
+    let displayValue: String  // actual reading shown on the bar, e.g. "12 mph", "78°F"
 
     static func colorForScore(_ score: Double) -> Color {
         if score >= 0.7 { return .green }
         if score >= 0.5 { return .orange }
-        if score >= 0.3 { return .red }
-        return .gray
+        return .red   // gray is reserved for weight == 0 (unused factor)
     }
 }
 

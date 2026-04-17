@@ -73,12 +73,34 @@ struct TideStageCalculator {
         return before.heightFt + fraction * (after.heightFt - before.heightFt)
     }
 
-    /// Get tide stage and change rate for a 2-hour forecast block.
+    /// Get tide stage and change rate for a forecast block.
+    ///
+    /// Samples every 30 minutes across the block and averages, so that blocks
+    /// containing a slack-tide turn are not misrepresented by a single midpoint reading.
     static func blockTideInfo(blockStart: Date, blockEnd: Date, readings: [TideReading]) -> (stage: TideStage, changeRate: Double, height: Double) {
-        let midpoint = blockStart.addingTimeInterval(blockEnd.timeIntervalSince(blockStart) / 2)
-        let stage = tideStage(at: midpoint, readings: readings)
-        let rate = changeRate(at: midpoint, readings: readings)
-        let height = interpolatedHeight(at: midpoint, readings: readings) ?? 0
-        return (stage, rate, height)
+        let stepInterval: TimeInterval = 1800 // 30 minutes
+        let totalDuration = blockEnd.timeIntervalSince(blockStart)
+        let steps = max(1, Int((totalDuration / stepInterval).rounded()))
+
+        var rates: [Double] = []
+        var heights: [Double] = []
+
+        for i in 0...steps {
+            let t = blockStart.addingTimeInterval(min(Double(i) * stepInterval, totalDuration))
+            rates.append(changeRate(at: t, readings: readings))
+            heights.append(interpolatedHeight(at: t, readings: readings) ?? 0)
+        }
+
+        let avgRate = rates.reduce(0, +) / Double(rates.count)
+        let avgHeight = heights.reduce(0, +) / Double(heights.count)
+
+        let stage: TideStage
+        if abs(avgRate) < 0.02 {
+            stage = .slack
+        } else {
+            stage = avgRate > 0 ? .incoming : .outgoing
+        }
+
+        return (stage, avgRate, avgHeight)
     }
 }

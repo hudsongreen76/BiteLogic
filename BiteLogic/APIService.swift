@@ -82,13 +82,13 @@ class TideService {
         return abs(after.heightFt - before.heightFt) / hrs
     }
 
-    func fetchTides3Day(stationId: String, timezone: String, from date: Date = Date()) async throws -> [TideReading] {
+    func fetchTides3Day(stationId: String, timezone: String, from date: Date = Date(), days: Int = 3) async throws -> [TideReading] {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd"
         formatter.timeZone = TimeZone(identifier: timezone)
 
         let startOfDay = Calendar.current.startOfDay(for: date)
-        let endDate = Calendar.current.date(byAdding: .day, value: 3, to: startOfDay)!
+        let endDate = Calendar.current.date(byAdding: .day, value: days, to: startOfDay)!
 
         let urlStr = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
             + "?begin_date=\(formatter.string(from: startOfDay))&end_date=\(formatter.string(from: endDate))"
@@ -129,6 +129,44 @@ class TideService {
             return response.predictions
         } catch {
             throw APIError.decodingError(error)
+        }
+    }
+
+    /// Fetch exact high/low tide times using NOAA's hilo product.
+    /// Returns accurate extrema (e.g. 4:23 PM) rather than hourly-snapped times.
+    func fetchTideHiLo(stationId: String, timezone: String, for date: Date = Date(), days: Int = 2) async throws -> [TideExtrema] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd"
+        formatter.timeZone = TimeZone(identifier: timezone)
+
+        let endDate = Calendar.current.date(byAdding: .day, value: days, to: date)!
+        let urlStr = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
+            + "?begin_date=\(formatter.string(from: date))&end_date=\(formatter.string(from: endDate))"
+            + "&station=\(stationId)"
+            + "&product=predictions&datum=MLLW&time_zone=lst_ldt"
+            + "&interval=hilo&units=english&application=bitelogic&format=json"
+
+        guard let url = URL(string: urlStr) else { throw APIError.badURL }
+        let (data, _) = try await apiSession.data(from: url)
+
+        struct HiLoResponse: Decodable {
+            let predictions: [HiLoReading]
+            struct HiLoReading: Decodable {
+                let t: String
+                let v: String
+                let type: String
+            }
+        }
+
+        let response = try JSONDecoder().decode(HiLoResponse.self, from: data)
+
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd HH:mm"
+        dateFmt.timeZone = TimeZone(identifier: timezone)
+
+        return response.predictions.compactMap { r in
+            guard let time = dateFmt.date(from: r.t), let height = Double(r.v) else { return nil }
+            return TideExtrema(time: time, heightFt: height, isHigh: r.type == "H")
         }
     }
 }
@@ -207,7 +245,7 @@ class WeatherService {
         let weatherURL = URL(string:
             "https://api.open-meteo.com/v1/forecast"
             + "?latitude=\(lat)&longitude=\(lon)"
-            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure"
+            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation,cloud_cover,wind_gusts_10m"
             + "&temperature_unit=fahrenheit&wind_speed_unit=mph"
             + "&timezone=\(timezone)&forecast_days=1"
         )!
@@ -215,7 +253,7 @@ class WeatherService {
         let marineURL = URL(string:
             "https://marine-api.open-meteo.com/v1/marine"
             + "?latitude=\(lat)&longitude=\(lon)"
-            + "&hourly=sea_surface_temperature"
+            + "&hourly=sea_surface_temperature,wave_height,wave_period"
             + "&temperature_unit=fahrenheit"
             + "&timezone=\(timezone)&forecast_days=1"
         )!
@@ -259,13 +297,39 @@ class WeatherService {
             pressureChange = 0
         }
 
+        let precip = weatherResponse.hourly.precipitation.flatMap { arr in
+            idx < arr.count ? arr[idx] : nil
+        } ?? 0.0
+        let cloud = weatherResponse.hourly.cloudCover.flatMap { arr in
+            idx < arr.count ? arr[idx] : nil
+        } ?? 0.0
+        let gusts = weatherResponse.hourly.windGusts10m.flatMap { arr in
+            idx < arr.count ? arr[idx] : nil
+        } ?? windMph
+
+        let waveHeight: Double
+        let wavePeriod: Double
+        if let marine = marineResponse {
+            let mi = min(idx, marine.hourly.waveHeight?.count ?? 0 - 1)
+            waveHeight = mi >= 0 ? (marine.hourly.waveHeight?[mi] ?? 0.0) ?? 0.0 : 0.0
+            wavePeriod = mi >= 0 ? (marine.hourly.wavePeriod?[mi] ?? 0.0) ?? 0.0 : 0.0
+        } else {
+            waveHeight = 0.0
+            wavePeriod = 0.0
+        }
+
         return WeatherData(
             windMph: windMph,
             windDirection: windDir,
+            windGustsMph: gusts,
             waterTempF: waterTemp,
             airTempF: airTemp,
             pressureHpa: pressure,
             pressureChangeRate: pressureChange,
+            precipitationMm: precip,
+            waveHeightM: waveHeight,
+            wavePeriodS: wavePeriod,
+            cloudCoverPct: cloud,
             timestamp: Date(),
             waterTempEstimated: waterEstimated
         )
@@ -275,7 +339,7 @@ class WeatherService {
         let url = URL(string:
             "https://api.open-meteo.com/v1/forecast"
             + "?latitude=\(lat)&longitude=\(lon)"
-            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure"
+            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation,cloud_cover,wind_gusts_10m"
             + "&temperature_unit=fahrenheit&wind_speed_unit=mph"
             + "&timezone=\(timezone)&forecast_days=1"
         )!
@@ -284,25 +348,25 @@ class WeatherService {
         return response.hourly.windSpeed10m.enumerated().map { ($0.offset, $0.element) }
     }
 
-    func fetchWeather3Day(lat: Double, lon: Double, timezone: String) async throws -> OpenMeteoResponse {
+    func fetchWeather3Day(lat: Double, lon: Double, timezone: String, days: Int = 3) async throws -> OpenMeteoResponse {
         let url = URL(string:
             "https://api.open-meteo.com/v1/forecast"
             + "?latitude=\(lat)&longitude=\(lon)"
-            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure"
+            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation,cloud_cover,wind_gusts_10m"
             + "&temperature_unit=fahrenheit&wind_speed_unit=mph"
-            + "&timezone=\(timezone)&forecast_days=3"
+            + "&timezone=\(timezone)&forecast_days=\(days)"
         )!
         let (data, _) = try await apiSession.data(from: url)
         return try JSONDecoder().decode(OpenMeteoResponse.self, from: data)
     }
 
-    func fetchMarine3Day(lat: Double, lon: Double, timezone: String) async throws -> MarineWeatherResponse {
+    func fetchMarine3Day(lat: Double, lon: Double, timezone: String, days: Int = 3) async throws -> MarineWeatherResponse {
         let url = URL(string:
             "https://marine-api.open-meteo.com/v1/marine"
             + "?latitude=\(lat)&longitude=\(lon)"
-            + "&hourly=sea_surface_temperature"
+            + "&hourly=sea_surface_temperature,wave_height,wave_period"
             + "&temperature_unit=fahrenheit"
-            + "&timezone=\(timezone)&forecast_days=3"
+            + "&timezone=\(timezone)&forecast_days=\(days)"
         )!
         let (data, _) = try await apiSession.data(from: url)
         return try JSONDecoder().decode(MarineWeatherResponse.self, from: data)
@@ -317,7 +381,7 @@ class WeatherService {
             "https://archive-api.open-meteo.com/v1/archive"
             + "?latitude=\(lat)&longitude=\(lon)"
             + "&start_date=\(dateStr)&end_date=\(dateStr)"
-            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure"
+            + "&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation,cloud_cover,wind_gusts_10m"
             + "&temperature_unit=fahrenheit&wind_speed_unit=mph"
             + "&timezone=\(timezone)"
         )!

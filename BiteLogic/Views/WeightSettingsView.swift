@@ -6,18 +6,10 @@ struct WeightSettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var vm: FishingViewModel
 
-    // Factor weights
-    @State private var weights: [Double] = {
-        if let data = UserDefaults.standard.data(forKey: "heuristicWeights"),
-           let saved = try? JSONDecoder().decode([Double].self, from: data),
-           saved.count == HeuristicEngine.factorNames.count {
-            return saved
-        }
-        return HeuristicEngine().weights
-    }()
-
-    // Heuristic preferences for optional factors
-    @State private var prefs: HeuristicPreferences = .load()
+    // Factor weights — loaded per-spot on appear
+    @State private var weights: [Double] = HeuristicEngine().weights
+    @State private var prefs: HeuristicPreferences = .defaultPreferences
+    @State private var didLoad = false
     @State private var showingDebug = false
 
     private let factorNames = HeuristicEngine.factorNames
@@ -42,114 +34,108 @@ struct WeightSettingsView: View {
                     .padding(.vertical, 4)
                 }
 
-                // Always-on factors (with weight sliders)
-                Section("Always-On Factors") {
+                // All factors in one section
+                Section("Factors") {
+                    // Wind — direction is always clear
                     factorWeightRow(index: 0, description: "Less wind = better")
-                    factorWeightRow(index: 1, description: "More tide movement = better")
                     factorWeightRow(index: 5, description: "Dropping pressure = better")
                     factorWeightRow(index: 3, description: "Closer to 10-day avg = better")
-                }
 
-                // Optional factors (user chooses preference or leaves off)
-                Section("Optional Factors") {
-                    Text("These factors have no effect by default. Set a preference to activate them.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    // Tide Movement
+                    prefPickerRow(
+                        title: "Tide Movement", weightIndex: 1, defaultWeight: 0.25,
+                        selectionBinding: Binding(
+                            get: { prefs.tideMovementEnabled ? "more" : "none" },
+                            set: { v in
+                                prefs.tideMovementEnabled = v != "none"
+                                if v == "none" { weights[1] = 0.0 } else if weights[1] == 0 { weights[1] = 0.25 }
+                            }
+                        ),
+                        options: [("No Effect", "none"), ("More = Better", "more")]
+                    )
 
                     // Time of Day
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Time of Day")
-                                .font(.subheadline.weight(.medium))
-                            Spacer()
-                            if prefs.timePreference != nil {
-                                Text(String(format: "%.0f%%", weights[2] * 100))
-                                    .font(.caption.bold())
-                                    .foregroundColor(.accentColor)
-                            }
-                        }
-                        Picker("Preference", selection: Binding(
+                    prefPickerRow(
+                        title: "Time of Day", weightIndex: 2, defaultWeight: 0.15,
+                        selectionBinding: Binding(
                             get: { prefs.timePreference ?? "none" },
-                            set: { prefs.timePreference = $0 == "none" ? nil : $0
-                                   if $0 == "none" { weights[2] = 0.0 } else if weights[2] == 0 { weights[2] = 0.15 }
+                            set: { v in
+                                prefs.timePreference = v == "none" ? nil : v
+                                if v == "none" { weights[2] = 0.0 } else if weights[2] == 0 { weights[2] = 0.15 }
                             }
-                        )) {
-                            Text("No Effect").tag("none")
-                            Text("Night is Better").tag("night")
-                            Text("Day is Better").tag("day")
-                        }
-                        .pickerStyle(.segmented)
-                        if prefs.timePreference != nil {
-                            Slider(value: $weights[2], in: 0.05...0.5, step: 0.05)
-                                .tint(.accentColor)
-                        }
-                    }
-                    .padding(.vertical, 4)
+                        ),
+                        options: [("No Effect", "none"), ("Night Better", "night"), ("Day Better", "day")]
+                    )
 
                     // Moon Phase
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Moon Phase")
-                                .font(.subheadline.weight(.medium))
-                            Spacer()
-                            if prefs.moonPreference != nil {
-                                Text(String(format: "%.0f%%", weights[4] * 100))
-                                    .font(.caption.bold())
-                                    .foregroundColor(.accentColor)
-                            }
-                        }
-                        Picker("Preference", selection: Binding(
+                    prefPickerRow(
+                        title: "Moon Phase", weightIndex: 4, defaultWeight: 0.10,
+                        selectionBinding: Binding(
                             get: { prefs.moonPreference ?? "none" },
-                            set: { prefs.moonPreference = $0 == "none" ? nil : $0
-                                   if $0 == "none" { weights[4] = 0.0 } else if weights[4] == 0 { weights[4] = 0.10 }
+                            set: { v in
+                                prefs.moonPreference = v == "none" ? nil : v
+                                if v == "none" { weights[4] = 0.0 } else if weights[4] == 0 { weights[4] = 0.10 }
                             }
-                        )) {
-                            Text("No Effect").tag("none")
-                            Text("New Moon Better").tag("new")
-                            Text("Full Moon Better").tag("full")
-                        }
-                        .pickerStyle(.segmented)
-                        if prefs.moonPreference != nil {
-                            Slider(value: $weights[4], in: 0.05...0.5, step: 0.05)
-                                .tint(.accentColor)
-                        }
-                    }
-                    .padding(.vertical, 4)
+                        ),
+                        options: [("No Effect", "none"), ("New Moon", "new"), ("Full Moon", "full")]
+                    )
 
                     // Tide Stage
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Tide Stage")
-                                .font(.subheadline.weight(.medium))
-                            Spacer()
-                            if prefs.tideStagePreference != nil {
-                                Text(String(format: "%.0f%%", weights[6] * 100))
-                                    .font(.caption.bold())
-                                    .foregroundColor(.accentColor)
-                            }
-                        }
-                        Picker("Preference", selection: Binding(
+                    prefPickerRow(
+                        title: "Tide Stage", weightIndex: 6, defaultWeight: 0.10,
+                        selectionBinding: Binding(
                             get: { prefs.tideStagePreference ?? "none" },
-                            set: { prefs.tideStagePreference = $0 == "none" ? nil : $0
-                                   if $0 == "none" { weights[6] = 0.0 } else if weights[6] == 0 { weights[6] = 0.10 }
+                            set: { v in
+                                prefs.tideStagePreference = v == "none" ? nil : v
+                                if v == "none" { weights[6] = 0.0 } else if weights[6] == 0 { weights[6] = 0.10 }
                             }
-                        )) {
-                            Text("No Effect").tag("none")
-                            Text("Incoming Better").tag("incoming")
-                            Text("Outgoing Better").tag("outgoing")
-                        }
-                        .pickerStyle(.segmented)
-                        if prefs.tideStagePreference != nil {
-                            Slider(value: $weights[6], in: 0.05...0.5, step: 0.05)
-                                .tint(.accentColor)
-                        }
-                    }
-                    .padding(.vertical, 4)
+                        ),
+                        options: [("No Effect", "none"), ("Incoming", "incoming"), ("Outgoing", "outgoing")]
+                    )
+
+                    // Rain
+                    prefPickerRow(
+                        title: "Rain", weightIndex: 7, defaultWeight: 0.10,
+                        selectionBinding: Binding(
+                            get: { prefs.rainPreference ?? "none" },
+                            set: { v in
+                                prefs.rainPreference = v == "none" ? nil : v
+                                if v == "none" { weights[7] = 0.0 } else if weights[7] == 0 { weights[7] = 0.10 }
+                            }
+                        ),
+                        options: [("No Effect", "none"), ("No Rain Better", "norain"), ("Rain Better", "rain")]
+                    )
+
+                    // Wave Height
+                    prefPickerRow(
+                        title: "Wave Height", weightIndex: 8, defaultWeight: 0.10,
+                        selectionBinding: Binding(
+                            get: { prefs.wavePreference ?? "none" },
+                            set: { v in
+                                prefs.wavePreference = v == "none" ? nil : v
+                                if v == "none" { weights[8] = 0.0 } else if weights[8] == 0 { weights[8] = 0.10 }
+                            }
+                        ),
+                        options: [("No Effect", "none"), ("Calmer Better", "calmer"), ("Rougher Better", "rougher")]
+                    )
+
+                    // Cloud Cover
+                    prefPickerRow(
+                        title: "Cloud Cover", weightIndex: 9, defaultWeight: 0.10,
+                        selectionBinding: Binding(
+                            get: { prefs.cloudCoverPreference ?? "none" },
+                            set: { v in
+                                prefs.cloudCoverPreference = v == "none" ? nil : v
+                                if v == "none" { weights[9] = 0.0 } else if weights[9] == 0 { weights[9] = 0.10 }
+                            }
+                        ),
+                        options: [("No Effect", "none"), ("Overcast Better", "overcast"), ("Sunny Better", "sunny")]
+                    )
                 }
 
                 Section {
                     Button("Reset All to Defaults") {
-                        weights = [0.25, 0.25, 0.00, 0.15, 0.00, 0.25, 0.00]
+                        weights = [0.25, 0.25, 0.00, 0.15, 0.00, 0.25, 0.00, 0.00, 0.00, 0.00]
                         prefs = .defaultPreferences
                     }
                     .foregroundColor(.orange)
@@ -195,6 +181,13 @@ struct WeightSettingsView: View {
                 }
             }
             .sheet(isPresented: $showingDebug) { debugView }
+            .onAppear {
+                guard !didLoad else { return }
+                didLoad = true
+                let spotId = vm.activeSpot?.id
+                weights = HeuristicPreferences.loadWeights(spotId: spotId)
+                prefs = HeuristicPreferences.load(spotId: spotId)
+            }
         }
     }
 
@@ -227,32 +220,71 @@ struct WeightSettingsView: View {
         return .gray
     }
 
+    /// Row for factors that require a direction preference before activating.
+    private func prefPickerRow(
+        title: String,
+        weightIndex: Int,
+        defaultWeight: Double,
+        selectionBinding: Binding<String>,
+        options: [(label: String, tag: String)]
+    ) -> some View {
+        let active = selectionBinding.wrappedValue != "none"
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                Spacer()
+                if active {
+                    Text(String(format: "%.0f%%", weights[weightIndex] * 100))
+                        .font(.caption.bold())
+                        .foregroundColor(.accentColor)
+                } else {
+                    Text("Off")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            Picker("", selection: selectionBinding) {
+                ForEach(options, id: \.tag) { opt in
+                    Text(opt.label).tag(opt.tag)
+                }
+            }
+            .pickerStyle(.segmented)
+            if active {
+                Slider(value: $weights[weightIndex], in: 0.05...0.5, step: 0.05)
+                    .tint(.accentColor)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
     // MARK: - Apply
 
     private func applySettings() {
-        // Ensure optional factors with no preference have 0 weight
+        guard let spot = vm.activeSpot else { return }
+        let spotId = spot.id ?? UUID()
+
+        // Ensure direction-dependent factors with no preference have 0 weight
+        if !prefs.tideMovementEnabled { weights[1] = 0 }
         if prefs.timePreference == nil { weights[2] = 0 }
         if prefs.moonPreference == nil { weights[4] = 0 }
         if prefs.tideStagePreference == nil { weights[6] = 0 }
+        if prefs.rainPreference == nil { weights[7] = 0 }
+        if prefs.wavePreference == nil { weights[8] = 0 }
+        if prefs.cloudCoverPreference == nil { weights[9] = 0 }
 
-        // Save preferences
-        prefs.save()
+        // Save per-spot
+        prefs.save(spotId: spotId)
+        HeuristicPreferences.saveWeights(weights, spotId: spotId)
 
-        // Save weights
-        if let data = try? JSONEncoder().encode(weights) {
-            UserDefaults.standard.set(data, forKey: "heuristicWeights")
-        }
-
-        // Apply to all heuristic engines
-        guard let spot = vm.activeSpot else { return }
-        let spotId = spot.id ?? UUID()
+        // Apply to all heuristic engines for this spot
         for variable in spot.sortedVariables {
             let varId = variable.id ?? UUID()
             let engine = PredictionManager.shared.heuristicEngine(for: spotId, variableId: varId)
             engine.weights = weights
             engine.preferences = prefs
         }
-        PredictionManager.shared.updateHeuristicPreferences(prefs)
+        PredictionManager.shared.updateHeuristicPreferences(prefs, spotId: spotId)
         vm.computePredictions()
     }
 

@@ -1,0 +1,1520 @@
+{
+  "nodes": [
+    {
+      "id": "dashboardview_dashboardview",
+      "label": "DashboardView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 3",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "dashboardview_variablepredictioncard",
+      "label": "VariablePredictionCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 119",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "dashboardview_errorbannerview",
+      "label": "ErrorBannerView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 238",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "dashboardview_cacheddatabannerview",
+      "label": "CachedDataBannerView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 263",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "dashboardview_predictionmodetoggle",
+      "label": "PredictionModeToggle",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 288",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "dashboardview_loadingbarview",
+      "label": "LoadingBarView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 332",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "dashboardview_cardview",
+      "label": "CardView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 354",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "weightsettingsview_weightsettingsview",
+      "label": "WeightSettingsView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/WeightSettingsView.swift",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "logentryformview_lognightbuttonview",
+      "label": "LogNightButtonView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": "line 8",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "logentryformview_logentryformview",
+      "label": "LogEntryFormView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": "line 37",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "logentryformview_tripsummarysheet",
+      "label": "TripSummarySheet",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": "line 428",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "loglistview_loglistview",
+      "label": "LogListView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "loglistview_csvshareitem",
+      "label": "CSVShareItem",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 140",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "loglistview_sharesheet",
+      "label": "ShareSheet",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 152",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "loglistview_logentryrowview",
+      "label": "LogEntryRowView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 162",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conditioncards_estimatedbadge",
+      "label": "EstimatedBadge",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conditioncards_windcardview",
+      "label": "WindCardView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 39",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conditioncards_mooncardview",
+      "label": "MoonCardView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 160",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conditioncards_watertempcardview",
+      "label": "WaterTempCardView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 186",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conditioncards_pressurecardview",
+      "label": "PressureCardView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 311",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "conditioncards_solunarcardview",
+      "label": "SolunarCardView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 445",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "spotpickerview_spotpickerview",
+      "label": "SpotPickerView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/SpotPickerView.swift",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "spotpickerview_spotsetupview",
+      "label": "SpotSetupView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/SpotPickerView.swift",
+      "source_location": "line 286",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "forecastview_forecastview",
+      "label": "ForecastView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "forecastview_forecastchartcard",
+      "label": "ForecastChartCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 103",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "forecastview_forecastchartshape",
+      "label": "ForecastChartShape",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 139",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "forecastview_forecastblockrow",
+      "label": "ForecastBlockRow",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 287",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "forecastview_minilabel",
+      "label": "MiniLabel",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 488",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "forecastview_forecastdaysection",
+      "label": "ForecastDaySection",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 508",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "spotswitcherview_spotswitcherview",
+      "label": "SpotSwitcherView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/SpotSwitcherView.swift",
+      "source_location": "line 3",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "tidegraphview_tidegraphcard",
+      "label": "TideGraphCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TideGraphView.swift",
+      "source_location": "line 3",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "tidegraphview_tidegraphshape",
+      "label": "TideGraphShape",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TideGraphView.swift",
+      "source_location": "line 124",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "tidegraphview_tideextremachip",
+      "label": "TideExtremaChip",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TideGraphView.swift",
+      "source_location": "line 257",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trendsview_insightsview",
+      "label": "InsightsView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 6",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trendsview_enginestatuscard",
+      "label": "EngineStatusCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 113",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trendsview_featureimportancecard",
+      "label": "FeatureImportanceCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 167",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trendsview_learnedweightscard",
+      "label": "LearnedWeightsCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 208",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trendsview_ratingdistributioncard",
+      "label": "RatingDistributionCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 275",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trendsview_predictionaccuracycard",
+      "label": "PredictionAccuracyCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 329",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trendsview_recenttrendcard",
+      "label": "RecentTrendCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 493",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "contentview_contentview",
+      "label": "ContentView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/ContentView.swift",
+      "source_location": "line 4",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "spotcomparisonview_spotcomparisonview",
+      "label": "SpotComparisonView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/SpotComparisonView.swift",
+      "source_location": "line 9",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "spotcomparisonview_spotcomparisoncard",
+      "label": "SpotComparisonCard",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/SpotComparisonView.swift",
+      "source_location": "line 71",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "variablemanagerview_variablemanagerview",
+      "label": "VariableManagerView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 6",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "variablemanagerview_variableweighteditorview",
+      "label": "VariableWeightEditorView",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 105",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "variablemanagerview_speciespickerrow",
+      "label": "SpeciesPickerRow",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 187",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "variablemanagerview_factorweightssection",
+      "label": "FactorWeightsSection",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 236",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "variablemanagerview_addvariablesheet",
+      "label": "AddVariableSheet",
+      "file_type": "code",
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 386",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "plan_dual_prediction_system",
+      "label": "Dual Prediction System Plan (Activity + Position)",
+      "file_type": "document",
+      "source_file": "PLAN.md",
+      "source_location": "Part 2",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "plan_3day_forecast_tab",
+      "label": "3-Day Forecast Tab Plan",
+      "file_type": "document",
+      "source_file": "PLAN.md",
+      "source_location": "Part 4",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "plan_barometric_pressure_variable",
+      "label": "Barometric Pressure Variable Plan",
+      "file_type": "document",
+      "source_file": "PLAN.md",
+      "source_location": "Part 1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "plan_rationale_pressure_scoring",
+      "label": "Rationale: Pressure Rate-of-Change Scoring",
+      "file_type": "document",
+      "source_file": "PLAN.md",
+      "source_location": "Part 1 Scoring Logic",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "plan_rationale_dual_prediction",
+      "label": "Rationale: Two Independent Predictions vs One",
+      "file_type": "document",
+      "source_file": "PLAN.md",
+      "source_location": "Part 2",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_feature_backlog",
+      "label": "README Feature Backlog",
+      "file_type": "document",
+      "source_file": "BiteLogic/README.md",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "appicon_bitelogic",
+      "label": "BiteLogic App Icon \u2014 Tarpon + Hook",
+      "file_type": "image",
+      "source_file": "BiteLogic/Assets.xcassets/AppIcon.appiconset/final.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "contentview_contentview",
+      "target": "dashboardview_dashboardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ContentView.swift",
+      "source_location": "line 67",
+      "weight": 1.0
+    },
+    {
+      "source": "contentview_contentview",
+      "target": "loglistview_loglistview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ContentView.swift",
+      "source_location": "line 71",
+      "weight": 1.0
+    },
+    {
+      "source": "contentview_contentview",
+      "target": "trendsview_insightsview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ContentView.swift",
+      "source_location": "line 76",
+      "weight": 1.0
+    },
+    {
+      "source": "contentview_contentview",
+      "target": "spotcomparisonview_spotcomparisonview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ContentView.swift",
+      "source_location": "line 81",
+      "weight": 1.0
+    },
+    {
+      "source": "contentview_contentview",
+      "target": "spotpickerview_spotpickerview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ContentView.swift",
+      "source_location": "line 22",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "dashboardview_variablepredictioncard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 43",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "dashboardview_predictionmodetoggle",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 17",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "dashboardview_loadingbarview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 20",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "dashboardview_errorbannerview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 28",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "dashboardview_cacheddatabannerview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 32",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "forecastview_forecastview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 41",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "conditioncards_solunarcardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 55",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "tidegraphview_tidegraphcard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 59",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "conditioncards_windcardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 62",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "conditioncards_mooncardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 65",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "conditioncards_watertempcardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 68",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "conditioncards_pressurecardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 71",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "logentryformview_lognightbuttonview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 77",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "spotswitcherview_spotswitcherview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 94",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_dashboardview",
+      "target": "variablemanagerview_variablemanagerview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 100",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboardview_predictionmodetoggle",
+      "target": "dashboardview_predictionmodetoggle",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": "line 313",
+      "weight": 1.0
+    },
+    {
+      "source": "logentryformview_lognightbuttonview",
+      "target": "logentryformview_logentryformview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": "line 29",
+      "weight": 1.0
+    },
+    {
+      "source": "logentryformview_logentryformview",
+      "target": "logentryformview_tripsummarysheet",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": "line 233",
+      "weight": 1.0
+    },
+    {
+      "source": "loglistview_loglistview",
+      "target": "logentryformview_logentryformview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 69",
+      "weight": 1.0
+    },
+    {
+      "source": "loglistview_loglistview",
+      "target": "loglistview_logentryrowview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 39",
+      "weight": 1.0
+    },
+    {
+      "source": "loglistview_loglistview",
+      "target": "loglistview_csvshareitem",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 50",
+      "weight": 1.0
+    },
+    {
+      "source": "loglistview_loglistview",
+      "target": "loglistview_sharesheet",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/LogListView.swift",
+      "source_location": "line 70",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_windcardview",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 44",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_mooncardview",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 164",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_watertempcardview",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 213",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_pressurecardview",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 347",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_solunarcardview",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 459",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_windcardview",
+      "target": "dashboardview_loadingbarview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 151",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_windcardview",
+      "target": "conditioncards_estimatedbadge",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 56",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_watertempcardview",
+      "target": "conditioncards_estimatedbadge",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 224",
+      "weight": 1.0
+    },
+    {
+      "source": "conditioncards_pressurecardview",
+      "target": "conditioncards_estimatedbadge",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ConditionCards.swift",
+      "source_location": "line 358",
+      "weight": 1.0
+    },
+    {
+      "source": "spotpickerview_spotpickerview",
+      "target": "spotpickerview_spotsetupview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/SpotPickerView.swift",
+      "source_location": "line 209",
+      "weight": 1.0
+    },
+    {
+      "source": "spotswitcherview_spotswitcherview",
+      "target": "spotpickerview_spotpickerview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/SpotSwitcherView.swift",
+      "source_location": "line 53",
+      "weight": 1.0
+    },
+    {
+      "source": "forecastview_forecastview",
+      "target": "forecastview_forecastchartcard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 44",
+      "weight": 1.0
+    },
+    {
+      "source": "forecastview_forecastview",
+      "target": "forecastview_forecastdaysection",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 46",
+      "weight": 1.0
+    },
+    {
+      "source": "forecastview_forecastchartcard",
+      "target": "forecastview_forecastchartshape",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 127",
+      "weight": 1.0
+    },
+    {
+      "source": "forecastview_forecastdaysection",
+      "target": "forecastview_forecastblockrow",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 553",
+      "weight": 1.0
+    },
+    {
+      "source": "forecastview_forecastblockrow",
+      "target": "forecastview_minilabel",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 392",
+      "weight": 1.0
+    },
+    {
+      "source": "forecastview_forecastchartcard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": "line 107",
+      "weight": 1.0
+    },
+    {
+      "source": "tidegraphview_tidegraphcard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TideGraphView.swift",
+      "source_location": "line 8",
+      "weight": 1.0
+    },
+    {
+      "source": "tidegraphview_tidegraphcard",
+      "target": "tidegraphview_tidegraphshape",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TideGraphView.swift",
+      "source_location": "line 37",
+      "weight": 1.0
+    },
+    {
+      "source": "tidegraphview_tidegraphcard",
+      "target": "tidegraphview_tideextremachip",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TideGraphView.swift",
+      "source_location": "line 45",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_insightsview",
+      "target": "trendsview_enginestatuscard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 32",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_insightsview",
+      "target": "trendsview_predictionaccuracycard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 35",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_insightsview",
+      "target": "trendsview_recenttrendcard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 43",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_insightsview",
+      "target": "trendsview_featureimportancecard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 47",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_insightsview",
+      "target": "trendsview_learnedweightscard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 52",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_insightsview",
+      "target": "trendsview_ratingdistributioncard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 55",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_insightsview",
+      "target": "weightsettingsview_weightsettingsview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 73",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_enginestatuscard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 119",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_featureimportancecard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 171",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_learnedweightscard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 218",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_ratingdistributioncard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 280",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_predictionaccuracycard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 394",
+      "weight": 1.0
+    },
+    {
+      "source": "trendsview_recenttrendcard",
+      "target": "dashboardview_cardview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": "line 520",
+      "weight": 1.0
+    },
+    {
+      "source": "variablemanagerview_variablemanagerview",
+      "target": "variablemanagerview_variableweighteditorview",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 19",
+      "weight": 1.0
+    },
+    {
+      "source": "variablemanagerview_variablemanagerview",
+      "target": "variablemanagerview_addvariablesheet",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 36",
+      "weight": 1.0
+    },
+    {
+      "source": "variablemanagerview_variableweighteditorview",
+      "target": "variablemanagerview_speciespickerrow",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 125",
+      "weight": 1.0
+    },
+    {
+      "source": "variablemanagerview_variableweighteditorview",
+      "target": "variablemanagerview_factorweightssection",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 129",
+      "weight": 1.0
+    },
+    {
+      "source": "variablemanagerview_addvariablesheet",
+      "target": "variablemanagerview_speciespickerrow",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 413",
+      "weight": 1.0
+    },
+    {
+      "source": "variablemanagerview_addvariablesheet",
+      "target": "variablemanagerview_factorweightssection",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/VariableManagerView.swift",
+      "source_location": "line 417",
+      "weight": 1.0
+    },
+    {
+      "source": "spotcomparisonview_spotcomparisonview",
+      "target": "spotcomparisonview_spotcomparisoncard",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/SpotComparisonView.swift",
+      "source_location": "line 24",
+      "weight": 1.0
+    },
+    {
+      "source": "logentryformview_logentryformview",
+      "target": "logentryformview_tripsummarysheet",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": "line 66",
+      "weight": 1.0
+    },
+    {
+      "source": "weightsettingsview_weightsettingsview",
+      "target": "variablemanagerview_factorweightssection",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "BiteLogic/Views/WeightSettingsView.swift",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "spotpickerview_spotsetupview",
+      "target": "weightsettingsview_weightsettingsview",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "BiteLogic/Views/SpotPickerView.swift",
+      "source_location": null,
+      "weight": 0.8
+    },
+    {
+      "source": "trendsview_predictionaccuracycard",
+      "target": "trendsview_recenttrendcard",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "dashboardview_variablepredictioncard",
+      "target": "forecastview_forecastblockrow",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.78,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": null,
+      "weight": 0.78
+    },
+    {
+      "source": "logentryformview_logentryformview",
+      "target": "trendsview_predictionaccuracycard",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.88,
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": null,
+      "weight": 0.88
+    },
+    {
+      "source": "plan_dual_prediction_system",
+      "target": "dashboardview_variablepredictioncard",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "PLAN.md",
+      "source_location": "Part 2",
+      "weight": 1.0
+    },
+    {
+      "source": "plan_3day_forecast_tab",
+      "target": "forecastview_forecastview",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "PLAN.md",
+      "source_location": "Part 4",
+      "weight": 1.0
+    },
+    {
+      "source": "plan_barometric_pressure_variable",
+      "target": "conditioncards_pressurecardview",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "PLAN.md",
+      "source_location": "Part 1",
+      "weight": 1.0
+    },
+    {
+      "source": "plan_rationale_pressure_scoring",
+      "target": "plan_barometric_pressure_variable",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "PLAN.md",
+      "source_location": "Part 1 Scoring Logic",
+      "weight": 1.0
+    },
+    {
+      "source": "plan_rationale_dual_prediction",
+      "target": "plan_dual_prediction_system",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "PLAN.md",
+      "source_location": "Part 2",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_feature_backlog",
+      "target": "loglistview_csvshareitem",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/README.md",
+      "source_location": "line 5",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_feature_backlog",
+      "target": "conditioncards_solunarcardview",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "BiteLogic/README.md",
+      "source_location": "line 5",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_feature_backlog",
+      "target": "variablemanagerview_variablemanagerview",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "BiteLogic/README.md",
+      "source_location": "line 6",
+      "weight": 0.8
+    },
+    {
+      "source": "appicon_bitelogic",
+      "target": "contentview_contentview",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "BiteLogic/Assets.xcassets/AppIcon.appiconset/final.png",
+      "source_location": null,
+      "weight": 0.7
+    },
+    {
+      "source": "logentryformview_logentryformview",
+      "target": "spotcomparisonview_spotcomparisoncard",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "BiteLogic/Views/LogEntryFormView.swift",
+      "source_location": null,
+      "weight": 0.65
+    },
+    {
+      "source": "dashboardview_loadingbarview",
+      "target": "forecastview_forecastview",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.72,
+      "source_file": "BiteLogic/Views/DashboardView.swift",
+      "source_location": null,
+      "weight": 0.72
+    },
+    {
+      "source": "forecastview_forecastchartshape",
+      "target": "tidegraphview_tidegraphshape",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.82,
+      "source_file": "BiteLogic/Views/ForecastView.swift",
+      "source_location": null,
+      "weight": 0.82
+    },
+    {
+      "source": "trendsview_recenttrendcard",
+      "target": "forecastview_forecastchartshape",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "BiteLogic/Views/TrendsView.swift",
+      "source_location": null,
+      "weight": 0.7
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "dashboard_condition_card_system",
+      "label": "Dashboard Condition Cards System \u2014 all environmental cards sharing CardView container, FishingViewModel data, and EstimatedBadge pattern",
+      "nodes": [
+        "conditioncards_windcardview",
+        "conditioncards_watertempcardview",
+        "conditioncards_pressurecardview",
+        "conditioncards_mooncardview",
+        "conditioncards_solunarcardview",
+        "dashboardview_cardview",
+        "conditioncards_estimatedbadge"
+      ],
+      "relation": "implement",
+      "confidence": "INFERRED",
+      "confidence_score": 0.88,
+      "source_file": "BiteLogic/Views/ConditionCards.swift"
+    },
+    {
+      "id": "heuristic_config_triad",
+      "label": "Heuristic Configuration Triad \u2014 SpotSetupView, WeightSettingsView, and VariableWeightEditorView all configure HeuristicPreferences weights at different scopes (spot-creation, spot-level, variable-level)",
+      "nodes": [
+        "spotpickerview_spotsetupview",
+        "weightsettingsview_weightsettingsview",
+        "variablemanagerview_variableweighteditorview",
+        "variablemanagerview_factorweightssection"
+      ],
+      "relation": "implement",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.92,
+      "source_file": "BiteLogic/Views/VariableManagerView.swift"
+    },
+    {
+      "id": "insights_accuracy_loop",
+      "label": "Insights Accuracy Feedback Loop \u2014 LogEntryFormView captures trips, PredictionAccuracyCard retroactively evaluates them, RecentTrendCard visualizes drift, driving EngineStatusCard threshold progression",
+      "nodes": [
+        "logentryformview_logentryformview",
+        "trendsview_predictionaccuracycard",
+        "trendsview_recenttrendcard",
+        "trendsview_enginestatuscard"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "BiteLogic/Views/TrendsView.swift"
+    }
+  ],
+  "input_tokens": 18500,
+  "output_tokens": 3200
+}

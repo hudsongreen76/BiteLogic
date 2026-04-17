@@ -6,69 +6,93 @@ struct ForecastView: View {
     @EnvironmentObject var vm: FishingViewModel
     @StateObject private var forecastVM = ForecastViewModel()
 
+    /// When set, only predictions for this variable are shown.
+    var filterVariable: (id: UUID, name: String)? = nil
+
+    private var title: String {
+        filterVariable.map { "\($0.name) Forecast" } ?? "7-Day Forecast"
+    }
+
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color(.systemGroupedBackground).ignoresSafeArea()
+        ZStack {
+            Color(.systemGroupedBackground).ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 16) {
-                        if forecastVM.isLoading {
-                            ProgressView("Loading 3-day forecast...")
-                                .padding(.top, 40)
+            ScrollView {
+                VStack(spacing: 16) {
+                    if forecastVM.isLoading {
+                        LoadingBarView(
+                            progress: forecastVM.loadingProgress,
+                            step: forecastVM.loadingStep
+                        )
+                        .padding(.top, 40)
+                    }
+
+                    if forecastVM.errorMessage != nil {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                            Text("Using estimated data")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
+                        .padding(10)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(10)
+                    }
 
-                        if forecastVM.errorMessage != nil {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.orange)
-                                Text("Using demo data")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(10)
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(10)
-                        }
+                    if !forecastVM.allBlocks.isEmpty {
+                        ForecastChartCard(forecastVM: forecastVM)
 
-                        if !forecastVM.allBlocks.isEmpty {
-                            // Activity chart
-                            ForecastChartCard(forecastVM: forecastVM)
-
-                            // Day-grouped sections
-                            ForEach(forecastVM.forecastDays) { day in
-                                ForecastDaySection(
-                                    day: day,
-                                    forecastVM: forecastVM
-                                )
-                            }
+                        ForEach(forecastVM.forecastDays) { day in
+                            ForecastDaySection(
+                                day: day,
+                                forecastVM: forecastVM,
+                                spotTimezone: forecastVM.spotTimezone
+                            )
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    .padding(.bottom, 20)
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+            }
+        }
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    Task { await forecastVM.loadForecast() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
                 }
             }
-            .navigationTitle("3-Day Forecast")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        Task { await forecastVM.loadForecast() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                }
-            }
-            .task {
-                if let spot = vm.activeSpot {
-                    forecastVM.spotLat = spot.latitude
-                    forecastVM.spotLon = spot.longitude
-                    forecastVM.spotStationId = spot.noaaStationId ?? "8723214"
-                    forecastVM.spotTimezone = spot.timezone ?? "America/New_York"
-                    forecastVM.spotId = spot.id ?? UUID()
-                    forecastVM.trackedVariableIds = spot.sortedVariables.compactMap { $0.id }
-                }
-                await forecastVM.loadForecast()
+        }
+        .task {
+            applySpot(vm.activeSpot)
+            await forecastVM.loadForecast()
+        }
+        .onChange(of: vm.activeSpot) { _, spot in
+            applySpot(spot)
+            Task { await forecastVM.loadForecast() }
+        }
+    }
+
+    private func applySpot(_ spot: FishingSpotEntity?) {
+        guard let spot else { return }
+        forecastVM.spotLat = spot.latitude
+        forecastVM.spotLon = spot.longitude
+        forecastVM.spotStationId = spot.noaaStationId ?? "8723214"
+        forecastVM.spotTimezone = spot.timezone ?? "America/New_York"
+        forecastVM.spotId = spot.id ?? UUID()
+
+        if let filter = filterVariable {
+            // Scope to just the tapped variable
+            forecastVM.trackedVariables = [filter]
+        } else {
+            forecastVM.trackedVariables = spot.sortedVariables.compactMap { v in
+                guard let id = v.id, let name = v.name else { return nil }
+                return (id: id, name: name)
             }
         }
     }
@@ -262,19 +286,30 @@ struct ForecastChartShape: View {
 
 struct ForecastBlockRow: View {
     let block: ForecastBlock
+    let variables: [(id: UUID, name: String)]
     let isHighlighted: Bool
+    var spotTimezone: String = "America/New_York"
     @State private var isExpanded = false
 
-    private var firstPrediction: VariablePrediction? {
-        block.predictions.values.first
+    /// Average rating across all tracked variables, falls back to first prediction.
+    private var avgRating: Double {
+        let preds = variables.compactMap { block.predictions[$0.id] }
+        guard !preds.isEmpty else { return block.predictions.values.first?.predictedRating ?? 3.0 }
+        return preds.map(\.predictedRating).reduce(0, +) / Double(preds.count)
+    }
+
+    private var solunarPeriods: [SolunarPeriod] {
+        let tz = TimeZone(identifier: spotTimezone) ?? .current
+        return SolunarCalculator.periodsOverlapping(
+            blockStart: block.startTime, blockEnd: block.endTime, timezone: tz
+        )
     }
 
     var body: some View {
-        let rating = firstPrediction?.predictedRating ?? 3.0
-        let percentage = firstPrediction?.percentage ?? 50.0
-        let level = ActivityLevel.from(rating: rating)
+        let level = ActivityLevel.from(rating: avgRating)
 
         VStack(spacing: 0) {
+            // Collapsed header
             HStack(spacing: 10) {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(level.color)
@@ -294,14 +329,46 @@ struct ForecastBlockRow: View {
                         Text(block.conditions.tideStage.label)
                             .font(.caption2)
                             .foregroundColor(.secondary)
+                        // Solunar badges
+                        ForEach(solunarPeriods) { period in
+                            Image(systemName: period.icon)
+                                .font(.system(size: 9))
+                                .foregroundColor(period.isMajor ? .yellow : .blue.opacity(0.8))
+                                .padding(.horizontal, 3)
+                                .padding(.vertical, 1)
+                                .background((period.isMajor ? Color.yellow : Color.blue).opacity(0.1))
+                                .cornerRadius(3)
+                        }
                     }
                 }
 
                 Spacer()
 
-                Text(String(format: "%.0f%%", percentage))
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(level.color)
+                // Per-variable compact scores
+                if variables.count > 1 {
+                    HStack(spacing: 6) {
+                        ForEach(variables, id: \.id) { v in
+                            if let pred = block.predictions[v.id] {
+                                let vLevel = ActivityLevel.from(rating: pred.predictedRating)
+                                VStack(spacing: 1) {
+                                    Text(v.name)
+                                        .font(.system(size: 8, weight: .semibold))
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                    Text(String(format: "%.0f%%", pred.percentage))
+                                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                                        .foregroundColor(vLevel.color)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    let percentage = variables.first.flatMap { block.predictions[$0.id] }?.percentage
+                        ?? block.predictions.values.first?.percentage ?? 50.0
+                    Text(String(format: "%.0f%%", percentage))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(level.color)
+                }
 
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                     .font(.caption2)
@@ -320,7 +387,7 @@ struct ForecastBlockRow: View {
                 VStack(spacing: 8) {
                     Divider()
 
-                    // Conditions summary row
+                    // Conditions summary
                     HStack(spacing: 12) {
                         MiniLabel(icon: "wind",
                                   value: String(format: "%.0f mph", block.conditions.windMph))
@@ -332,35 +399,53 @@ struct ForecastBlockRow: View {
                                   value: String(format: "%+.1f", block.conditions.pressureChangeRate))
                     }
 
-                    // Detailed factor breakdown (like old screenshot)
-                    if let factors = firstPrediction?.factors, !factors.isEmpty {
-                        Divider()
-                        VStack(spacing: 6) {
-                            ForEach(factors, id: \.name) { factor in
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack {
-                                        Image(systemName: factorIcon(factor.name))
-                                            .font(.caption)
-                                            .foregroundColor(factor.color)
-                                            .frame(width: 16)
-                                        Text(factorTitle(factor))
-                                            .font(.caption.bold())
-                                        Spacer()
-                                        // Factor bar
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(Color(.systemGray5))
-                                            .frame(width: 60, height: 8)
-                                            .overlay(alignment: .leading) {
-                                                RoundedRectangle(cornerRadius: 3)
-                                                    .fill(factor.color)
-                                                    .frame(width: max(3, 60 * CGFloat(factor.score)))
-                                            }
-                                            .clipShape(RoundedRectangle(cornerRadius: 3))
-                                    }
-                                    Text(factor.note)
-                                        .font(.caption2)
+                    // Per-variable prediction breakdowns
+                    ForEach(variables, id: \.id) { v in
+                        if let pred = block.predictions[v.id] {
+                            Divider()
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text(v.name.uppercased())
+                                        .font(.caption2.bold())
                                         .foregroundColor(.secondary)
-                                        .padding(.leading, 22)
+                                    Spacer()
+                                    let vLevel = ActivityLevel.from(rating: pred.predictedRating)
+                                    Text(String(format: "%.0f%%", pred.percentage))
+                                        .font(.caption.bold())
+                                        .foregroundColor(vLevel.color)
+                                }
+                                if !pred.factors.isEmpty {
+                                    VStack(spacing: 4) {
+                                        ForEach(pred.factors, id: \.name) { factor in
+                                            HStack(spacing: 6) {
+                                                Image(systemName: factorIcon(factor.name))
+                                                    .font(.system(size: 9))
+                                                    .foregroundColor(factor.color)
+                                                    .frame(width: 14)
+                                                Text(factor.name)
+                                                    .font(.system(size: 10, weight: .semibold))
+                                                if !factor.displayValue.isEmpty {
+                                                    Text(factor.displayValue)
+                                                        .font(.system(size: 9))
+                                                        .foregroundColor(.secondary)
+                                                }
+                                                Spacer()
+                                                RoundedRectangle(cornerRadius: 3)
+                                                    .fill(Color(.systemGray5))
+                                                    .frame(width: 50, height: 7)
+                                                    .overlay(alignment: .leading) {
+                                                        RoundedRectangle(cornerRadius: 3)
+                                                            .fill(factor.color)
+                                                            .frame(width: max(3, 50 * CGFloat(factor.score)))
+                                                    }
+                                                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                                                Text(String(format: "%.0f%%", factor.score * 100))
+                                                    .font(.system(size: 9, weight: .bold))
+                                                    .foregroundColor(factor.color)
+                                                    .frame(width: 28, alignment: .trailing)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -396,25 +481,6 @@ struct ForecastBlockRow: View {
         }
     }
 
-    private func factorTitle(_ factor: PredictionFactor) -> String {
-        let c = block.conditions
-        switch factor.name {
-        case "Wind": return "Wind (\(String(format: "%.0f mph", c.windMph)))"
-        case "Tide Movement": return "Tide (\(String(format: "%.2f ft/hr", abs(c.tideChangeRate))))"
-        case "Water Temp": return "Water (\(String(format: "%.0f°F", c.waterTempF)))"
-        case "Pressure": return "Pressure (\(String(format: "%+.1f hPa/hr", c.pressureChangeRate)))"
-        case "Time of Day":
-            let h = Int(c.timeOfDay)
-            let ampm = h < 12 ? "AM" : "PM"
-            let h12 = h % 12 == 0 ? 12 : h % 12
-            return "Time (\(h12) \(ampm))"
-        case "Moon Phase":
-            let moon = MoonPhaseData.calculate(for: block.startTime)
-            return "Moon (\(moon.phaseName))"
-        case "Tide Stage": return "Tide Stage (\(c.tideStage.label))"
-        default: return factor.name
-        }
-    }
 }
 
 // MARK: - Mini Condition Label
@@ -442,7 +508,8 @@ struct MiniLabel: View {
 struct ForecastDaySection: View {
     let day: ForecastDay
     @ObservedObject var forecastVM: ForecastViewModel
-    @State private var isExpanded = true
+    var spotTimezone: String = "America/New_York"
+    @State private var isExpanded = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -485,7 +552,9 @@ struct ForecastDaySection: View {
                         )
                         ForecastBlockRow(
                             block: block,
-                            isHighlighted: forecastVM.selectedBlockIndex == blockIndex
+                            variables: forecastVM.trackedVariables,
+                            isHighlighted: forecastVM.selectedBlockIndex == blockIndex,
+                            spotTimezone: spotTimezone
                         )
                         .id(block.id)
                     }

@@ -4,7 +4,6 @@ struct DashboardView: View {
     @EnvironmentObject var vm: FishingViewModel
     @ObservedObject var spotManager: SpotManager
     @ObservedObject var predictionManager = PredictionManager.shared
-    @State private var showingWeightSettings = false
 
     var body: some View {
         NavigationView {
@@ -18,24 +17,42 @@ struct DashboardView: View {
                         PredictionModeToggle()
 
                         if vm.isLoading {
-                            ProgressView("Loading conditions...")
-                                .padding(.top, 40)
+                            LoadingBarView(
+                                progress: vm.loadingProgress,
+                                step: vm.loadingStep
+                            )
+                            .padding(.top, 40)
                         }
 
                         if let err = vm.errorMessage {
                             ErrorBannerView(message: err)
                         }
 
-                        // Prediction cards per tracked variable
+                        if vm.isShowingCachedData {
+                            CachedDataBannerView(age: vm.cachedDataAge)
+                        }
+
+                        // Prediction cards per tracked variable — tap to open variable forecast
                         if let spot = vm.activeSpot {
                             ForEach(spot.sortedVariables, id: \.id) { variable in
-                                if let pred = vm.predictions[variable.id ?? UUID()] {
-                                    VariablePredictionCard(
-                                        variableName: variable.name ?? "Unknown",
-                                        prediction: pred
-                                    )
+                                if let varId = variable.id,
+                                   let pred = vm.predictions[varId] {
+                                    NavigationLink {
+                                        ForecastView(filterVariable: (id: varId, name: variable.name ?? "Unknown"))
+                                    } label: {
+                                        VariablePredictionCard(
+                                            variableName: variable.name ?? "Unknown",
+                                            prediction: pred
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
+                        }
+
+                        // Solunar periods
+                        if let spot = vm.activeSpot {
+                            SolunarCardView(timezone: spot.timezone ?? "America/New_York")
                         }
 
                         // Tide Graph
@@ -52,6 +69,9 @@ struct DashboardView: View {
 
                         // Pressure
                         PressureCardView()
+
+                        // Notification settings
+                        NotificationManager.shared.settingsView()
 
                         // Log trip button
                         LogNightButtonView()
@@ -83,11 +103,6 @@ struct DashboardView: View {
                             }
                         }
                         Button {
-                            showingWeightSettings = true
-                        } label: {
-                            Image(systemName: "slider.horizontal.3")
-                        }
-                        Button {
                             Task { await vm.loadAll() }
                         } label: {
                             Image(systemName: "arrow.clockwise")
@@ -95,9 +110,6 @@ struct DashboardView: View {
                     }
                 }
             }
-        }
-        .sheet(isPresented: $showingWeightSettings) {
-            WeightSettingsView()
         }
     }
 }
@@ -144,6 +156,30 @@ struct VariablePredictionCard: View {
                     Text(prediction.engineType)
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.7))
+                    // Confidence interval range bar
+                    let lowFrac = CGFloat((prediction.confidenceInterval.low - 1.0) / 4.0)
+                    let highFrac = CGFloat((prediction.confidenceInterval.high - 1.0) / 4.0)
+                    let centerFrac = CGFloat(prediction.percentage / 100.0)
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.white.opacity(0.2))
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.white.opacity(0.45))
+                                .frame(width: max(4, (highFrac - lowFrac) * geo.size.width))
+                                .offset(x: lowFrac * geo.size.width)
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(Color.white)
+                                .frame(width: 3)
+                                .offset(x: max(0, min(geo.size.width - 3, centerFrac * geo.size.width - 1.5)))
+                        }
+                    }
+                    .frame(height: 4)
+                    Text(String(format: "±%.0f–%.0f%%",
+                                prediction.confidenceInterval.low / 5.0 * 100,
+                                prediction.confidenceInterval.high / 5.0 * 100))
+                        .font(.system(size: 8))
+                        .foregroundColor(.white.opacity(0.5))
                 }
             }
             .padding()
@@ -169,10 +205,18 @@ struct VariablePredictionCard: View {
                                     }
                                 }
                                 .frame(height: 10)
-                                Text(String(format: "%.0f%%", factor.score * 100))
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(factor.color)
-                                    .frame(width: 36, alignment: .trailing)
+                                VStack(alignment: .trailing, spacing: 1) {
+                                    Text(String(format: "%.0f%%", factor.score * 100))
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(factor.color)
+                                    if !factor.displayValue.isEmpty {
+                                        Text(factor.displayValue)
+                                            .font(.system(size: 9))
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                }
+                                .frame(width: 50, alignment: .trailing)
                             }
                             Text(factor.note)
                                 .font(.system(size: 10))
@@ -210,6 +254,31 @@ struct ErrorBannerView: View {
         }
         .padding(10)
         .background(Color(.secondarySystemBackground))
+        .cornerRadius(10)
+    }
+}
+
+// MARK: - Cached Data Banner
+
+struct CachedDataBannerView: View {
+    let age: String
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "wifi.slash")
+                .font(.caption)
+                .foregroundColor(.blue)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Offline — showing cached data")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.primary)
+                Text("Last updated \(age)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .padding(10)
+        .background(Color.blue.opacity(0.08))
         .cornerRadius(10)
     }
 }
@@ -255,6 +324,29 @@ struct PredictionModeToggle: View {
             .foregroundColor(isSelected ? .white : .secondary)
             .cornerRadius(10)
         }
+    }
+}
+
+// MARK: - Loading Bar
+
+struct LoadingBarView: View {
+    let progress: Double
+    let step: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ProgressView(value: progress)
+                .progressViewStyle(.linear)
+                .tint(.accentColor)
+                .animation(.easeInOut(duration: 0.3), value: progress)
+            if !step.isEmpty {
+                Text(step)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .transition(.opacity)
+            }
+        }
+        .padding(.horizontal, 40)
     }
 }
 

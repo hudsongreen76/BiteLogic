@@ -22,7 +22,8 @@ class EnvironmentalDataFetcher {
         timezone: String,
         date: Date,
         startHour: Int,
-        endHour: Int
+        endHour: Int,
+        onProgress: ((Double, String) -> Void)? = nil
     ) async -> FetchResult {
         let midHour = (startHour + endHour) / 2
         let calendar = Calendar.current
@@ -34,6 +35,7 @@ class EnvironmentalDataFetcher {
         var failures: [FetchFailure] = []
 
         // Moon (always available - local calculation)
+        onProgress?(0.1, "Calculating moon phase…")
         let moon = MoonPhaseData.calculate(for: date)
         conditions.moonPhase = moon.phase
         conditions.moonIllumination = moon.illumination
@@ -43,14 +45,15 @@ class EnvironmentalDataFetcher {
         conditions.isDaylight = midHour >= 6 && midHour < 20
 
         // Parallel fetch: tides + weather
+        onProgress?(0.2, "Fetching tides…")
         async let tideTask = fetchTides(stationId: stationId, timezone: timezone, date: date)
         async let weatherTask = fetchWeather(lat: lat, lon: lon, timezone: timezone, date: date, hour: midHour, useForecast: useForecast)
 
         // Process tides
         let tideResult = await tideTask
+        onProgress?(0.55, "Fetching weather…")
         switch tideResult {
         case .success(let readings):
-            let targetTime = calendar.date(bySettingHour: midHour, minute: 30, second: 0, of: date) ?? date
             let stageInfo = TideStageCalculator.blockTideInfo(
                 blockStart: calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: date) ?? date,
                 blockEnd: calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: date) ?? date,
@@ -70,10 +73,15 @@ class EnvironmentalDataFetcher {
         case .success(let weather):
             conditions.windMph = weather.windMph
             conditions.windDirection = weather.windDirDegrees
+            conditions.windGustsMph = weather.windGustsMph
             conditions.airTempF = weather.airTempF
             conditions.waterTempF = weather.waterTempF
             conditions.pressureHpa = weather.pressureHpa
             conditions.pressureChangeRate = weather.pressureChangeRate
+            conditions.precipitationMm = weather.precipitationMm
+            conditions.waveHeightM = weather.waveHeightM
+            conditions.wavePeriodS = weather.wavePeriodS
+            conditions.cloudCoverPct = weather.cloudCoverPct
             conditions.isEstimatedWaterTemp = weather.waterTempEstimated
             conditions.isEstimatedPressure = weather.pressureEstimated
             conditions.isEstimatedWind = weather.windEstimated
@@ -84,6 +92,7 @@ class EnvironmentalDataFetcher {
             conditions.isEstimatedWaterTemp = true
         }
 
+        onProgress?(1.0, "")
         return FetchResult(conditions: conditions, failures: failures)
     }
 
@@ -105,10 +114,15 @@ class EnvironmentalDataFetcher {
     struct WeatherSnapshot {
         let windMph: Double
         let windDirDegrees: Double
+        let windGustsMph: Double
         let airTempF: Double
         let waterTempF: Double
         let pressureHpa: Double
         let pressureChangeRate: Double
+        let precipitationMm: Double
+        let waveHeightM: Double
+        let wavePeriodS: Double
+        let cloudCoverPct: Double
         let waterTempEstimated: Bool
         let pressureEstimated: Bool
         let windEstimated: Bool
@@ -138,19 +152,33 @@ class EnvironmentalDataFetcher {
                 pressureChange = 0
             }
 
-            // Water temp: try marine API, fallback to air-3
+            let precip = response.hourly.precipitation.flatMap { arr in
+                idx < arr.count ? arr[idx] : nil
+            } ?? 0.0
+            let cloud = response.hourly.cloudCover.flatMap { arr in
+                idx < arr.count ? arr[idx] : nil
+            } ?? 0.0
+            let gusts = response.hourly.windGusts10m.flatMap { arr in
+                idx < arr.count ? arr[idx] : nil
+            } ?? windMph
+
+            // Water temp + wave data from marine API
             let waterTemp: Double
             let waterEstimated: Bool
+            var waveHeight = 0.0
+            var wavePeriod = 0.0
             do {
                 let marine = try await WeatherService.shared.fetchMarine3Day(lat: lat, lon: lon, timezone: timezone)
-                let marineIdx = min(hour, marine.hourly.seaSurfaceTemperature.count - 1)
-                if marineIdx >= 0, let sst = marine.hourly.seaSurfaceTemperature[marineIdx] {
+                let mi = min(hour, marine.hourly.seaSurfaceTemperature.count - 1)
+                if mi >= 0, let sst = marine.hourly.seaSurfaceTemperature[mi] {
                     waterTemp = sst
                     waterEstimated = false
                 } else {
                     waterTemp = airTemp - 3
                     waterEstimated = true
                 }
+                if let wh = marine.hourly.waveHeight, mi < wh.count { waveHeight = wh[mi] ?? 0.0 }
+                if let wp = marine.hourly.wavePeriod, mi < wp.count { wavePeriod = wp[mi] ?? 0.0 }
             } catch {
                 waterTemp = airTemp - 3
                 waterEstimated = true
@@ -159,10 +187,15 @@ class EnvironmentalDataFetcher {
             return .success(WeatherSnapshot(
                 windMph: windMph,
                 windDirDegrees: windDir,
+                windGustsMph: gusts,
                 airTempF: airTemp,
                 waterTempF: waterTemp,
                 pressureHpa: pressure,
                 pressureChangeRate: pressureChange,
+                precipitationMm: precip,
+                waveHeightM: waveHeight,
+                wavePeriodS: wavePeriod,
+                cloudCoverPct: cloud,
                 waterTempEstimated: waterEstimated,
                 pressureEstimated: false,
                 windEstimated: false

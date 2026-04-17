@@ -169,6 +169,11 @@ extension EnvironmentalSnapshotEntity {
             airTempF: airTempF,
             pressureHpa: pressureHpa,
             pressureChangeRate: pressureChangeRate,
+            precipitationMm: precipitationMm,
+            waveHeightM: waveHeightM,
+            wavePeriodS: wavePeriodS,
+            cloudCoverPct: cloudCoverPct,
+            windGustsMph: windGustsMph,
             timeOfDay: timeOfDay,
             isDaylight: isDaylight,
             isEstimatedWind: isEstimatedWind,
@@ -190,6 +195,11 @@ extension EnvironmentalSnapshotEntity {
         airTempF = conditions.airTempF
         pressureHpa = conditions.pressureHpa
         pressureChangeRate = conditions.pressureChangeRate
+        precipitationMm = conditions.precipitationMm
+        waveHeightM = conditions.waveHeightM
+        wavePeriodS = conditions.wavePeriodS
+        cloudCoverPct = conditions.cloudCoverPct
+        windGustsMph = conditions.windGustsMph
         timeOfDay = conditions.timeOfDay
         isDaylight = conditions.isDaylight
         isEstimatedWind = conditions.isEstimatedWind

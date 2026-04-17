@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import CoreData
 import Combine
+import WidgetKit
 
 @MainActor
 class FishingViewModel: ObservableObject {
@@ -21,6 +22,8 @@ class FishingViewModel: ObservableObject {
     @Published var predictions: [UUID: VariablePrediction] = [:]
 
     @Published var isLoading = false
+    @Published var loadingProgress: Double = 0
+    @Published var loadingStep: String = ""
     @Published var errorMessage: String?
     @Published var lastUpdated: Date?
 
@@ -29,6 +32,8 @@ class FishingViewModel: ObservableObject {
     @Published var weatherIsDemo = false
     @Published var waterTempEstimated = false
     @Published var tidesIsDemo = false
+    @Published var isShowingCachedData = false
+    @Published var cachedDataAge: String = ""
 
     @Published var scrubbingIndex: Int? = nil
 
@@ -58,6 +63,11 @@ class FishingViewModel: ObservableObject {
             airTempF: weather?.airTempF ?? 80,
             pressureHpa: weather?.pressureHpa ?? 1013,
             pressureChangeRate: weather?.pressureChangeRate ?? 0,
+            precipitationMm: weather?.precipitationMm ?? 0,
+            waveHeightM: weather?.waveHeightM ?? 0,
+            wavePeriodS: weather?.wavePeriodS ?? 0,
+            cloudCoverPct: weather?.cloudCoverPct ?? 0,
+            windGustsMph: weather?.windGustsMph ?? 0,
             timeOfDay: Double(hour) + Double(minute) / 60.0,
             isDaylight: hour >= 6 && hour < 20,
             isEstimatedWaterTemp: weather?.waterTempEstimated ?? true
@@ -70,6 +80,8 @@ class FishingViewModel: ObservableObject {
         guard activeSpot != nil else { return }
 
         isLoading = true
+        loadingProgress = 0
+        loadingStep = "Loading conditions…"
         errorMessage = nil
         weatherIsDemo = false
         waterTempEstimated = false
@@ -77,17 +89,64 @@ class FishingViewModel: ObservableObject {
 
         moonPhase = MoonPhaseData.calculate(for: Date())
 
+        // All three run concurrently; each increments progress when done
         async let tidesTask: Void = loadTides()
         async let weatherTask: Void = loadWeather()
         async let summariesTask: Void = load3DaySummaries()
 
         await tidesTask
+        loadingProgress = 0.33
+        loadingStep = "Loading weather…"
         await weatherTask
+        loadingProgress = 0.66
+        loadingStep = "Loading summaries…"
         await summariesTask
+        loadingProgress = 1.0
+        loadingStep = ""
 
         computePredictions()
         lastUpdated = Date()
+        isShowingCachedData = false
         isLoading = false
+
+        // Cache the successful result
+        if let spot = activeSpot, let spotId = spot.id, let weather = weather {
+            ConditionsCache.shared.save(
+                spotId: spotId,
+                conditions: currentConditions,
+                weather: weather,
+                hourlyWind: hourlyWind,
+                tideReadings: tideReadings
+            )
+        }
+
+        // Fire notifications if conditions look good
+        if let spot = activeSpot {
+            NotificationManager.shared.checkConditionsAndNotify(
+                predictions: predictions,
+                variables: spot.sortedVariables,
+                spotName: spot.name ?? "your spot"
+            )
+        }
+
+        // Push data to home screen widget
+        updateWidgetData()
+    }
+
+    private func updateWidgetData() {
+        guard let spot = activeSpot,
+              let firstVar = spot.sortedVariables.first,
+              let varId = firstVar.id,
+              let pred = predictions[varId] else { return }
+
+        let defaults = UserDefaults(suiteName: "group.com.bitelogic.app") ?? .standard
+        defaults.set(spot.name ?? "Unknown", forKey: "widget_spotName")
+        defaults.set(pred.percentage, forKey: "widget_percentage")
+        defaults.set(ActivityLevel.from(rating: pred.predictedRating).rawValue, forKey: "widget_activityLevel")
+        if let spotId = spot.id, let cache = ConditionsCache.shared.load(spotId: spotId) {
+            defaults.set(cache.ageDescription, forKey: "widget_cacheAge")
+        }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     private func loadTides() async {
@@ -96,7 +155,16 @@ class FishingViewModel: ObservableObject {
                 stationId: spotStationId, timezone: spotTimezone
             )
             tideReadings = readings
-            tideExtrema = TideService.shared.findExtrema(from: readings)
+
+            // Use hi_lo product for exact high/low times (e.g. 4:23 PM, not 4:00 PM).
+            // Fall back to deriving extrema from hourly readings if hi_lo fetch fails.
+            if let hiLo = try? await TideService.shared.fetchTideHiLo(
+                stationId: spotStationId, timezone: spotTimezone
+            ) {
+                tideExtrema = hiLo
+            } else {
+                tideExtrema = TideService.shared.findExtrema(from: readings)
+            }
             tideChangeRate = TideService.shared.tideChangeRate(readings: readings)
 
             let now = Date()
@@ -116,12 +184,13 @@ class FishingViewModel: ObservableObject {
                 }
             }
         } catch {
-            errorMessage = "Tide data: \(error.localizedDescription)"
+            // Tide data unavailable (landlocked spot or NOAA failure) — use empty/neutral values
             tidesIsDemo = true
-            tideReadings = Self.demoTides()
-            tideExtrema = TideService.shared.findExtrema(from: tideReadings)
-            tideChangeRate = 0.18
-            currentTideHeight = 1.4
+            tideReadings = []
+            tideExtrema = []
+            tideChangeRate = 0
+            currentTideHeight = 0
+            currentTideStage = .slack
         }
     }
 
@@ -133,12 +202,23 @@ class FishingViewModel: ObservableObject {
             weather = weatherData
             waterTempEstimated = weatherData.waterTempEstimated
         } catch {
-            errorMessage = (errorMessage ?? "") + "\nWeather: \(error.localizedDescription)"
-            weatherIsDemo = true
-            waterTempEstimated = true
-            weather = WeatherData(windMph: 12, windDirection: "SE", waterTempF: 78,
-                                  airTempF: 81, pressureHpa: 1013, pressureChangeRate: -0.3,
-                                  timestamp: Date(), waterTempEstimated: true)
+            // Try cached data before falling back to demo values
+            if let spotId = activeSpot?.id, let cache = ConditionsCache.shared.load(spotId: spotId) {
+                weather = cache.weather.toWeatherData
+                hourlyWind = cache.hourlyWind.enumerated().map { ($0.offset, $0.element) }
+                waterTempEstimated = cache.weather.waterTempEstimated
+                isShowingCachedData = true
+                cachedDataAge = cache.ageDescription
+            } else {
+                errorMessage = (errorMessage ?? "") + "\nWeather: \(error.localizedDescription)"
+                weatherIsDemo = true
+                waterTempEstimated = true
+                weather = WeatherData(windMph: 12, windDirection: "SE", windGustsMph: 15,
+                                      waterTempF: 78, airTempF: 81, pressureHpa: 1013,
+                                      pressureChangeRate: -0.3, precipitationMm: 0,
+                                      waveHeightM: 0, wavePeriodS: 0, cloudCoverPct: 50,
+                                      timestamp: Date(), waterTempEstimated: true)
+            }
         }
 
         do {

@@ -29,6 +29,7 @@
         <attribute name="endTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="photoData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="startTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="environmentalSnapshot" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="EnvironmentalSnapshotEntity" inverseName="logEntry" inverseEntity="EnvironmentalSnapshotEntity"/>
         <relationship name="ratings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="VariableRatingEntity" inverseName="logEntry" inverseEntity="VariableRatingEntity"/>
@@ -60,6 +61,11 @@
         <attribute name="waterTempF" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="windDirection" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="windMph" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="precipitationMm" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="waveHeightM" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="wavePeriodS" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="cloudCoverPct" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="windGustsMph" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="logEntry" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="LogEntryEntity" inverseName="environmentalSnapshot" inverseEntity="LogEntryEntity"/>
     </entity>
     <entity name="PredictionWeightEntity" representedClassName="PredictionWeightEntity" syncable="YES" codeGenerationType="class">

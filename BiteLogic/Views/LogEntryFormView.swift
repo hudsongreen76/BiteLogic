@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreData
 import Combine
+import PhotosUI
 
 // MARK: - Log Night Button (on Dashboard)
 
@@ -48,11 +49,21 @@ struct LogEntryFormView: View {
     @State private var categorySelections: [UUID: String] = [:]
     @State private var notes = ""
 
+    // Photo
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedPhotoData: Data?
+
     // Environmental data
     @State private var fetchedConditions: EnvironmentalConditions?
     @State private var fetchFailures: [FetchFailure] = []
     @State private var isFetching = false
+    @State private var fetchProgress: Double = 0
+    @State private var fetchStep: String = ""
     @State private var showingFailureAlert = false
+
+    // Post-trip summary
+    @State private var showingTripSummary = false
+    @State private var tripSummaryItems: [(variableName: String, predicted: Double, actual: Double)] = []
 
     private var dateOptions: [(label: String, date: Date)] {
         let calendar = Calendar.current
@@ -114,11 +125,16 @@ struct LogEntryFormView: View {
                 // Conditions status
                 Section("Conditions") {
                     if isFetching {
-                        HStack {
-                            ProgressView()
-                            Text("Fetching environmental data...")
+                        VStack(spacing: 6) {
+                            ProgressView(value: fetchProgress)
+                                .progressViewStyle(.linear)
+                                .tint(.accentColor)
+                                .animation(.easeInOut(duration: 0.3), value: fetchProgress)
+                            Text(fetchStep.isEmpty ? "Fetching conditions…" : fetchStep)
                                 .font(.caption)
+                                .foregroundColor(.secondary)
                         }
+                        .padding(.vertical, 4)
                     } else if let conditions = fetchedConditions {
                         conditionsSummary(conditions)
                     }
@@ -151,6 +167,47 @@ struct LogEntryFormView: View {
                     TextEditor(text: $notes)
                         .frame(minHeight: 80)
                 }
+
+                Section("Photo (optional)") {
+                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                        HStack {
+                            if let data = selectedPhotoData, let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 64, height: 64)
+                                    .clipped()
+                                    .cornerRadius(8)
+                                Text("Change photo")
+                                    .font(.subheadline)
+                                    .foregroundColor(.accentColor)
+                            } else {
+                                Image(systemName: "camera")
+                                    .font(.title3)
+                                    .foregroundColor(.accentColor)
+                                Text("Add a photo")
+                                    .font(.subheadline)
+                                    .foregroundColor(.accentColor)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .onChange(of: selectedPhotoItem) { _, item in
+                        Task {
+                            if let data = try? await item?.loadTransferable(type: Data.self) {
+                                selectedPhotoData = data
+                            }
+                        }
+                    }
+                    if selectedPhotoData != nil {
+                        Button(role: .destructive) {
+                            selectedPhotoData = nil
+                            selectedPhotoItem = nil
+                        } label: {
+                            Text("Remove photo")
+                        }
+                    }
+                }
             }
             .navigationTitle("Log Trip")
             .navigationBarTitleDisplayMode(.inline)
@@ -161,7 +218,6 @@ struct LogEntryFormView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         saveEntry()
-                        dismiss()
                     }
                     .fontWeight(.semibold)
                     .disabled(isFetching)
@@ -173,6 +229,9 @@ struct LogEntryFormView: View {
                 Button("Retry") { fetchEnvironmentalData() }
             } message: {
                 Text(fetchFailures.map { "\($0.dataType): \($0.error.localizedDescription)" }.joined(separator: "\n"))
+            }
+            .sheet(isPresented: $showingTripSummary, onDismiss: { dismiss() }) {
+                TripSummarySheet(items: tripSummaryItems)
             }
         }
     }
@@ -252,6 +311,8 @@ struct LogEntryFormView: View {
     private func fetchEnvironmentalData() {
         guard let spot = vm.activeSpot else { return }
         isFetching = true
+        fetchProgress = 0
+        fetchStep = ""
         fetchFailures = []
 
         let date = dateOptions[selectedDateIndex].date
@@ -263,7 +324,15 @@ struct LogEntryFormView: View {
                 timezone: spot.timezone ?? TimeZone.current.identifier,
                 date: date,
                 startHour: startHour,
-                endHour: endHour
+                endHour: endHour,
+                onProgress: { progress, step in
+                    Task { @MainActor in
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            fetchProgress = progress
+                            fetchStep = step
+                        }
+                    }
+                }
             )
             fetchedConditions = result.conditions
             fetchFailures = result.failures
@@ -281,6 +350,22 @@ struct LogEntryFormView: View {
         guard let spot = vm.activeSpot else { return }
         let selectedDate = dateOptions[selectedDateIndex].date
         let calendar = Calendar.current
+        let spotId = spot.id ?? UUID()
+
+        // Compute prediction summary before saving (for post-trip sheet)
+        let conditions = fetchedConditions ?? vm.currentConditions
+        var summaryItems: [(variableName: String, predicted: Double, actual: Double)] = []
+        for variable in spot.sortedVariables {
+            guard variable.type != VariableType.category.rawValue else { continue }
+            let varId = variable.id ?? UUID()
+            let predicted = PredictionManager.shared.predict(conditions: conditions, spotId: spotId, variableId: varId)
+            let actual = starRatings[varId] ?? 3.0
+            summaryItems.append((
+                variableName: variable.name ?? "Unknown",
+                predicted: predicted.predictedRating,
+                actual: actual
+            ))
+        }
 
         let entry = LogEntryEntity(context: viewContext)
         entry.id = UUID()
@@ -290,6 +375,7 @@ struct LogEntryFormView: View {
         entry.notes = notes
         entry.createdAt = Date()
         entry.spot = spot
+        entry.photoData = selectedPhotoData
 
         // Save ratings
         for variable in spot.sortedVariables {
@@ -308,7 +394,6 @@ struct LogEntryFormView: View {
         }
 
         // Save environmental snapshot
-        let conditions = fetchedConditions ?? vm.currentConditions
         let snapshot = EnvironmentalSnapshotEntity(context: viewContext)
         snapshot.id = UUID()
         snapshot.populate(from: conditions)
@@ -318,8 +403,15 @@ struct LogEntryFormView: View {
 
         // Retrain predictions with new data
         vm.computePredictions()
-        // Notify that log entries changed (for list refresh)
         vm.objectWillChange.send()
+
+        // Show post-trip summary if there's something to compare
+        if !summaryItems.isEmpty {
+            tripSummaryItems = summaryItems
+            showingTripSummary = true
+        } else {
+            dismiss()
+        }
     }
 
     // MARK: - Helpers
@@ -328,5 +420,126 @@ struct LogEntryFormView: View {
         let h = hour % 12 == 0 ? 12 : hour % 12
         let ampm = hour < 12 ? "AM" : "PM"
         return "\(h) \(ampm)"
+    }
+}
+
+// MARK: - Trip Summary Sheet
+
+struct TripSummarySheet: View {
+    @Environment(\.dismiss) var dismiss
+    let items: [(variableName: String, predicted: Double, actual: Double)]
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 52))
+                        .foregroundColor(.green)
+                    Text("Trip Logged!")
+                        .font(.title2.bold())
+                    Text("Here's how the prediction compared to what you experienced:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    VStack(spacing: 12) {
+                        ForEach(items, id: \.variableName) { item in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(item.variableName.uppercased())
+                                    .font(.caption2.bold())
+                                    .foregroundColor(.secondary)
+                                HStack(spacing: 24) {
+                                    VStack(spacing: 4) {
+                                        Text("Predicted")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                        starsView(rating: item.predicted, color: .green)
+                                        Text(String(format: "%.1f★", item.predicted))
+                                            .font(.caption.bold())
+                                            .foregroundColor(.green)
+                                    }
+                                    .frame(maxWidth: .infinity)
+
+                                    VStack(spacing: 4) {
+                                        Image(systemName: accuracyIcon(predicted: item.predicted, actual: item.actual))
+                                            .font(.title2)
+                                            .foregroundColor(accuracyColor(predicted: item.predicted, actual: item.actual))
+                                        Text(accuracyLabel(predicted: item.predicted, actual: item.actual))
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(width: 60)
+
+                                    VStack(spacing: 4) {
+                                        Text("You Rated")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                        starsView(rating: item.actual, color: .orange)
+                                        Text(String(format: "%.1f★", item.actual))
+                                            .font(.caption.bold())
+                                            .foregroundColor(.orange)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    Text("Your ratings help improve future predictions.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 20)
+                }
+                .padding(.top, 24)
+            }
+            .navigationTitle("How'd We Do?")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func starsView(rating: Double, color: Color) -> some View {
+        HStack(spacing: 2) {
+            ForEach(1...5, id: \.self) { i in
+                Image(systemName: Double(i) <= rating.rounded() ? "star.fill" : "star")
+                    .font(.system(size: 12))
+                    .foregroundColor(color)
+            }
+        }
+    }
+
+    private func accuracyIcon(predicted: Double, actual: Double) -> String {
+        let diff = abs(predicted - actual)
+        if diff <= 0.5 { return "checkmark.circle.fill" }
+        if diff <= 1.5 { return "arrow.left.arrow.right.circle" }
+        return "exclamationmark.circle"
+    }
+
+    private func accuracyColor(predicted: Double, actual: Double) -> Color {
+        let diff = abs(predicted - actual)
+        if diff <= 0.5 { return .green }
+        if diff <= 1.5 { return .orange }
+        return .red
+    }
+
+    private func accuracyLabel(predicted: Double, actual: Double) -> String {
+        let diff = abs(predicted - actual)
+        if diff <= 0.5 { return "Spot on!" }
+        if diff <= 1.5 { return "Close" }
+        if predicted > actual { return "Overpredicted" }
+        return "Underpredicted"
     }
 }

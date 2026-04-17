@@ -7,7 +7,13 @@ struct TideGraphCard: View {
     var body: some View {
         CardView(title: "Tide - \(vm.activeSpot?.name ?? "---")", systemImage: "water.waves") {
             VStack(alignment: .leading, spacing: 8) {
-                if let reading = vm.tideReadingForScrub() {
+                if vm.tideReadings.isEmpty && !vm.isLoading {
+                    Text("No tide data available for this spot")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 20)
+                } else if let reading = vm.tideReadingForScrub() {
                     HStack {
                         Text(reading.time, style: .time)
                             .font(.caption.bold())
@@ -223,7 +229,10 @@ struct TideGraphShape: View {
     }
 
     private func pointForExtrema(_ ex: TideExtrema, width: CGFloat, height: CGFloat) -> CGPoint? {
-        guard let idx = readings.firstIndex(where: { abs($0.time.timeIntervalSince(ex.time)) < 1800 }) else { return nil }
+        // Find the hourly reading whose time is closest to the hi_lo extrema time
+        guard let idx = readings.enumerated().min(by: {
+            abs($0.element.time.timeIntervalSince(ex.time)) < abs($1.element.time.timeIntervalSince(ex.time))
+        })?.offset else { return nil }
         let pts = chartPoints(width: width, height: height)
         guard pts.indices.contains(idx) else { return nil }
         return pts[idx]

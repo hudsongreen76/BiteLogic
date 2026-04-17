@@ -38,6 +38,7 @@ private func windLevel(for mph: Double) -> String {
 
 struct WindCardView: View {
     @EnvironmentObject var vm: FishingViewModel
+    @State private var showForecast = false
 
     var body: some View {
         CardView(title: "Wind", systemImage: "wind") {
@@ -54,9 +55,16 @@ struct WindCardView: View {
                                     .foregroundColor(.secondary)
                                 if vm.weatherIsDemo { EstimatedBadge() }
                             }
-                            Text("\(weather.windDirection) - \(windLevel(for: weather.windMph))")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            HStack(spacing: 6) {
+                                Text("\(weather.windDirection) - \(windLevel(for: weather.windMph))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                if weather.windGustsMph > weather.windMph + 3 {
+                                    Text("gusts \(Int(weather.windGustsMph)) mph")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                }
+                            }
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 2) {
@@ -75,57 +83,73 @@ struct WindCardView: View {
                     }
 
                     if !vm.dailySummaries.isEmpty {
-                        Divider()
-                        Text("3-DAY FORECAST")
-                            .font(.caption2.bold())
-                            .foregroundColor(.secondary)
-
-                        ForEach(vm.dailySummaries) { day in
-                            HStack(spacing: 10) {
-                                Text(day.dayLabel)
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .frame(width: 60, alignment: .leading)
-
-                                HStack(alignment: .bottom, spacing: 1) {
-                                    ForEach(day.hourlyWind, id: \.0) { item in
-                                        RoundedRectangle(cornerRadius: 1)
-                                            .fill(windColor(for: item.1).opacity(0.7))
-                                            .frame(width: 3, height: max(2, CGFloat(item.1) * 1.0))
-                                    }
-                                }
-                                .frame(height: 24)
-
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) { showForecast.toggle() }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text("3-DAY FORECAST")
+                                    .font(.caption2.bold())
+                                    .foregroundColor(.secondary)
                                 Spacer()
-
-                                VStack(alignment: .trailing, spacing: 1) {
-                                    Text(String(format: "%.0f", day.avgWindMph))
-                                        .font(.caption.bold())
-                                        .foregroundColor(windColor(for: day.avgWindMph))
-                                    Text("avg")
-                                        .font(.system(size: 8))
-                                        .foregroundColor(.secondary)
-                                }
-
-                                VStack(alignment: .trailing, spacing: 1) {
-                                    Text(String(format: "%.0f", day.maxWindMph))
-                                        .font(.caption.bold())
-                                        .foregroundColor(windColor(for: day.maxWindMph))
-                                    Text("max")
-                                        .font(.system(size: 8))
-                                        .foregroundColor(.secondary)
-                                }
-
-                                Text(day.avgWindDir)
+                                Image(systemName: showForecast ? "chevron.up" : "chevron.down")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
-                                    .frame(width: 28)
                             }
+                        }
+                        .buttonStyle(.plain)
+
+                        if showForecast {
+                            VStack(spacing: 6) {
+                                ForEach(vm.dailySummaries) { day in
+                                    HStack(spacing: 10) {
+                                        Text(day.dayLabel)
+                                            .font(.caption)
+                                            .fontWeight(.semibold)
+                                            .frame(width: 60, alignment: .leading)
+
+                                        HStack(alignment: .bottom, spacing: 1) {
+                                            ForEach(day.hourlyWind, id: \.0) { item in
+                                                RoundedRectangle(cornerRadius: 1)
+                                                    .fill(windColor(for: item.1).opacity(0.7))
+                                                    .frame(width: 3, height: max(2, CGFloat(item.1) * 1.0))
+                                            }
+                                        }
+                                        .frame(height: 24)
+
+                                        Spacer()
+
+                                        VStack(alignment: .trailing, spacing: 1) {
+                                            Text(String(format: "%.0f", day.avgWindMph))
+                                                .font(.caption.bold())
+                                                .foregroundColor(windColor(for: day.avgWindMph))
+                                            Text("avg")
+                                                .font(.system(size: 8))
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        VStack(alignment: .trailing, spacing: 1) {
+                                            Text(String(format: "%.0f", day.maxWindMph))
+                                                .font(.caption.bold())
+                                                .foregroundColor(windColor(for: day.maxWindMph))
+                                            Text("max")
+                                                .font(.system(size: 8))
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        Text(day.avgWindDir)
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                            .frame(width: 28)
+                                    }
+                                }
+                            }
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
                 }
             } else {
-                ProgressView()
+                LoadingBarView(progress: vm.loadingProgress, step: vm.loadingStep)
+                    .padding(.vertical, 8)
             }
         }
     }
@@ -161,6 +185,7 @@ struct MoonCardView: View {
 
 struct WaterTempCardView: View {
     @EnvironmentObject var vm: FishingViewModel
+    @State private var showForecast = false
 
     var tempColor: Color {
         guard let w = vm.weather?.waterTempF else { return .gray }
@@ -212,52 +237,68 @@ struct WaterTempCardView: View {
 
                 if !vm.dailySummaries.isEmpty {
                     Divider()
-                    Text("3-DAY FORECAST")
-                        .font(.caption2.bold())
-                        .foregroundColor(.secondary)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { showForecast.toggle() }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("3-DAY FORECAST")
+                                .font(.caption2.bold())
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Image(systemName: showForecast ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
 
-                    ForEach(vm.dailySummaries) { day in
-                        HStack(spacing: 10) {
-                            Text(day.dayLabel)
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 60, alignment: .leading)
+                    if showForecast {
+                        VStack(spacing: 6) {
+                            ForEach(vm.dailySummaries) { day in
+                                HStack(spacing: 10) {
+                                    Text(day.dayLabel)
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .frame(width: 60, alignment: .leading)
 
-                            GeometryReader { geo in
-                                let minT = 65.0
-                                let maxT = 95.0
-                                let range = maxT - minT
-                                let startFrac = (day.minWaterTempF - minT) / range
-                                let endFrac = (day.maxWaterTempF - minT) / range
-                                let barStart = CGFloat(max(0, startFrac)) * geo.size.width
-                                let barEnd = CGFloat(min(1, endFrac)) * geo.size.width
+                                    GeometryReader { geo in
+                                        let minT = 65.0
+                                        let maxT = 95.0
+                                        let range = maxT - minT
+                                        let startFrac = (day.minWaterTempF - minT) / range
+                                        let endFrac = (day.maxWaterTempF - minT) / range
+                                        let barStart = CGFloat(max(0, startFrac)) * geo.size.width
+                                        let barEnd = CGFloat(min(1, endFrac)) * geo.size.width
 
-                                ZStack(alignment: .leading) {
-                                    RoundedRectangle(cornerRadius: 3)
-                                        .fill(Color(.systemGray5))
-                                    RoundedRectangle(cornerRadius: 3)
-                                        .fill(LinearGradient(
-                                            colors: [colorForTemp(day.minWaterTempF), colorForTemp(day.maxWaterTempF)],
-                                            startPoint: .leading, endPoint: .trailing
-                                        ))
-                                        .frame(width: max(6, barEnd - barStart))
-                                        .offset(x: barStart)
+                                        ZStack(alignment: .leading) {
+                                            RoundedRectangle(cornerRadius: 3)
+                                                .fill(Color(.systemGray5))
+                                            RoundedRectangle(cornerRadius: 3)
+                                                .fill(LinearGradient(
+                                                    colors: [colorForTemp(day.minWaterTempF), colorForTemp(day.maxWaterTempF)],
+                                                    startPoint: .leading, endPoint: .trailing
+                                                ))
+                                                .frame(width: max(6, barEnd - barStart))
+                                                .offset(x: barStart)
+                                        }
+                                        .frame(height: 8)
+                                        .frame(maxHeight: .infinity, alignment: .center)
+                                    }
+                                    .frame(height: 16)
+
+                                    Text(String(format: "%.0f-%.0fF", day.minWaterTempF, day.maxWaterTempF))
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(colorForTemp(day.avgWaterTempF))
+                                        .frame(width: 65, alignment: .trailing)
+
+                                    if day.waterTempEstimated {
+                                        EstimatedBadge()
+                                    }
                                 }
-                                .frame(height: 8)
-                                .frame(maxHeight: .infinity, alignment: .center)
-                            }
-                            .frame(height: 16)
-
-                            Text(String(format: "%.0f-%.0fF", day.minWaterTempF, day.maxWaterTempF))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(colorForTemp(day.avgWaterTempF))
-                                .frame(width: 65, alignment: .trailing)
-
-                            if day.waterTempEstimated {
-                                EstimatedBadge()
                             }
                         }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }
@@ -269,6 +310,7 @@ struct WaterTempCardView: View {
 
 struct PressureCardView: View {
     @EnvironmentObject var vm: FishingViewModel
+    @State private var showForecast = false
 
     var pressureColor: Color {
         guard let rate = vm.weather?.pressureChangeRate else { return .gray }
@@ -335,49 +377,166 @@ struct PressureCardView: View {
 
                 if !vm.dailySummaries.isEmpty {
                     Divider()
-                    Text("3-DAY FORECAST")
-                        .font(.caption2.bold())
-                        .foregroundColor(.secondary)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { showForecast.toggle() }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("3-DAY FORECAST")
+                                .font(.caption2.bold())
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Image(systemName: showForecast ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
 
-                    ForEach(vm.dailySummaries) { day in
-                        HStack(spacing: 10) {
-                            Text(day.dayLabel)
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 60, alignment: .leading)
+                    if showForecast {
+                        VStack(spacing: 6) {
+                            ForEach(vm.dailySummaries) { day in
+                                HStack(spacing: 10) {
+                                    Text(day.dayLabel)
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .frame(width: 60, alignment: .leading)
 
-                            HStack(alignment: .bottom, spacing: 1) {
-                                let pressures = day.hourlyPressure.map(\.1)
-                                let minP = (pressures.min() ?? 1010) - 1
-                                let maxP = (pressures.max() ?? 1020) + 1
-                                let range = max(maxP - minP, 1)
-                                ForEach(day.hourlyPressure, id: \.0) { item in
-                                    let normalized = (item.1 - minP) / range
-                                    RoundedRectangle(cornerRadius: 1)
-                                        .fill(trendColor(for: day.pressureTrend).opacity(0.6))
-                                        .frame(width: 3, height: max(2, CGFloat(normalized) * 24))
+                                    HStack(alignment: .bottom, spacing: 1) {
+                                        let pressures = day.hourlyPressure.map(\.1)
+                                        let minP = (pressures.min() ?? 1010) - 1
+                                        let maxP = (pressures.max() ?? 1020) + 1
+                                        let range = max(maxP - minP, 1)
+                                        ForEach(day.hourlyPressure, id: \.0) { item in
+                                            let normalized = (item.1 - minP) / range
+                                            RoundedRectangle(cornerRadius: 1)
+                                                .fill(trendColor(for: day.pressureTrend).opacity(0.6))
+                                                .frame(width: 3, height: max(2, CGFloat(normalized) * 24))
+                                        }
+                                    }
+                                    .frame(height: 24)
+
+                                    Spacer()
+
+                                    Text(String(format: "%.0f", day.avgPressureHpa))
+                                        .font(.caption.bold())
+
+                                    HStack(spacing: 2) {
+                                        Image(systemName: day.pressureTrend < -0.5 ? "arrow.down.right" :
+                                                day.pressureTrend > 0.5 ? "arrow.up.right" : "arrow.right")
+                                            .font(.system(size: 9))
+                                        Text(String(format: "%+.1f", day.pressureTrend))
+                                            .font(.caption2)
+                                    }
+                                    .foregroundColor(trendColor(for: day.pressureTrend))
+                                    .frame(width: 50, alignment: .trailing)
                                 }
                             }
-                            .frame(height: 24)
-
-                            Spacer()
-
-                            Text(String(format: "%.0f", day.avgPressureHpa))
-                                .font(.caption.bold())
-
-                            HStack(spacing: 2) {
-                                Image(systemName: day.pressureTrend < -0.5 ? "arrow.down.right" :
-                                        day.pressureTrend > 0.5 ? "arrow.up.right" : "arrow.right")
-                                    .font(.system(size: 9))
-                                Text(String(format: "%+.1f", day.pressureTrend))
-                                    .font(.caption2)
-                            }
-                            .foregroundColor(trendColor(for: day.pressureTrend))
-                            .frame(width: 50, alignment: .trailing)
                         }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }
         }
+    }
+}
+
+// MARK: - Solunar Card
+
+struct SolunarCardView: View {
+    let timezone: String
+
+    private var tz: TimeZone { TimeZone(identifier: timezone) ?? .current }
+
+    private var allPeriods: [SolunarPeriod] {
+        SolunarCalculator.periods(for: Date(), timezone: tz)
+    }
+
+    private var activePeriod: SolunarPeriod? {
+        SolunarCalculator.activePeriod(at: Date(), timezone: tz)
+    }
+
+    var body: some View {
+        CardView(title: "Solunar Activity", systemImage: "moon.stars") {
+            VStack(alignment: .leading, spacing: 10) {
+                // Active period indicator
+                if let active = activePeriod {
+                    HStack(spacing: 8) {
+                        Image(systemName: active.isMajor ? "moon.stars.fill" : "moon.fill")
+                            .font(.title3)
+                            .foregroundColor(active.isMajor ? .yellow : .blue.opacity(0.8))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("\(active.label) Period — Active Now")
+                                .font(.subheadline.bold())
+                                .foregroundColor(active.isMajor ? .yellow : .blue)
+                            Text(SolunarCalculator.formatPeriod(active, timezone: tz))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(10)
+                    .background((active.isMajor ? Color.yellow : Color.blue).opacity(0.12))
+                    .cornerRadius(10)
+                } else {
+                    Text("No active solunar period right now.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Divider()
+
+                // Today's schedule
+                Text("TODAY'S PERIODS")
+                    .font(.caption2.bold())
+                    .foregroundColor(.secondary)
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    ForEach(allPeriods) { period in
+                        solunarPeriodCell(period)
+                    }
+                }
+
+                Text("Major (2 hrs): moon overhead/underfoot · Minor (1 hr): rise/set")
+                    .font(.caption2)
+                    .foregroundColor(.secondary.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func solunarPeriodCell(_ period: SolunarPeriod) -> some View {
+        let isPast = period.end < Date()
+        let isCurrent = period.contains(Date())
+        let color: Color = period.isMajor ? .yellow : .blue
+
+        VStack(spacing: 4) {
+            HStack(spacing: 4) {
+                Image(systemName: period.icon)
+                    .font(.caption)
+                    .foregroundColor(isPast ? .secondary : color)
+                Text(period.label)
+                    .font(.caption2.bold())
+                    .foregroundColor(isPast ? .secondary : color)
+            }
+            Text(SolunarCalculator.formatPeriod(period, timezone: tz))
+                .font(.system(size: 10))
+                .foregroundColor(isPast ? .secondary : .primary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity)
+        .background(
+            isCurrent
+                ? color.opacity(0.15)
+                : Color(.tertiarySystemBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isCurrent ? color.opacity(0.5) : Color.clear, lineWidth: 1.5)
+        )
+        .cornerRadius(8)
+        .opacity(isPast ? 0.5 : 1.0)
     }
 }
