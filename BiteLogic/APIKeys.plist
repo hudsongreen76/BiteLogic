@@ -3,9 +3,7 @@
     "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Open-Meteo is FREE and requires NO key -->
-    <!-- NOAA CO-OPS API is FREE and requires NO key -->
-    <!-- Add any future paid API keys below -->
+    <!-- We odnt need no gat damn kets cuz its all freeeeeeeee -->
     <key>OpenWeatherAPIKey</key>
     <string>NOT_REQUIRED_CURRENTLY</string>
 </dict>
